@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
  printf("\n");
 #endif
 
- SEM_transProg(exp); 
+ //SEM_transProg(exp); 
 
  return 0;
 }
