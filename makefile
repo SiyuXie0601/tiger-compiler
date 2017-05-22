@@ -44,8 +44,8 @@ constants.o: constants.c constants.h
 parsetest_display: semant.o types.o table.o y.tab.o lex.yy.o errormsg.o util.o symbol.o absyn.o parsetest_display.o tree.o temp.o frame.o translate.o printtree.o
 	cc -o parsetest_display -g semant.o types.o table.o symbol.o absyn.o y.tab.o lex.yy.o errormsg.o util.o parsetest_display.o tree.o temp.o frame.o translate.o printtree.o
 
-parsetest: prabsyn.o semant.o types.o table.o y.tab.o lex.yy.o errormsg.o util.o symbol.o absyn.o parsetest.o tree.o temp.o frame.o translate.o printtree.o
-	cc -o parsetest -g prabsyn.o semant.o types.o table.o symbol.o absyn.o y.tab.o lex.yy.o errormsg.o util.o parsetest.o tree.o temp.o frame.o translate.o printtree.o
+parsetest: prabsyn.o types.o table.o y.tab.o lex.yy.o errormsg.o util.o symbol.o absyn.o parsetest.o 
+	cc -o parsetest -g prabsyn.o types.o table.o symbol.o absyn.o y.tab.o lex.yy.o errormsg.o util.o parsetest.o 
 
 parsetest.o: parsetest.c errormsg.h util.h absyn.h
 	cc -g -c parsetest.c
