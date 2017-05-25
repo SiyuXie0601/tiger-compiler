@@ -13,7 +13,8 @@ struct TP_tp_ {
     enum {
 	TP_int,
 	TP_string,
-	TP_array
+	TP_array,
+	TP_void
     } kind;
     union {
 	TP_tp array;
@@ -22,6 +23,7 @@ struct TP_tp_ {
 
 TP_tp TP_Int(void);
 TP_tp TP_String(void);
+TP_tp TP_Void();
 TP_tp TP_Array(TP_tp tp);
 
 #endif // !_TYPES_H_
