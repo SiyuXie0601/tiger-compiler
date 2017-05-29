@@ -13,8 +13,8 @@
 /* Stack Structure START */
 
 /* Push */
-void Stack_push(stack_item *stackList, void *key){
-	stack_item head = *stackList;
+void Stack_push(stack_item *stkList, void *key){
+	stack_item head = *stkList;
 	if(head == NULL){
 		head = check_malloc(sizeof(struct stack_item_));
 		head->key = key;
@@ -26,23 +26,23 @@ void Stack_push(stack_item *stackList, void *key){
 		item->next = head;
 		head = item;
 	}
-	*stackList = head;
+	*stkList = head;
 }
 
 /*Pop*/
-void Stack_pop(stack_item *stackList){
-	stack_item head = *stackList;
+void Stack_pop(stack_item *stkList){
+	stack_item head = *stkList;
 	if(head != NULL){
 		stack_item free = head;
 		head = head->next;
 		check_free(free);
 	}
-	*stackList = head;
+	*stkList = head;
 }
 
 /*Make the stack empty*/
-void Stack_empty(stack_item *stackList){
-	stack_item head = *stackList;
+void Stack_empty(stack_item *stkList){
+	stack_item head = *stkList;
 	stack_item empty;
 	while(head != NULL){
 		empty = head;
@@ -54,8 +54,8 @@ void Stack_empty(stack_item *stackList){
 /*Check whether the given key exists in the stack.
  *Function compare return true if two variables are the same.
  */
-bool Stack_check(stack_item *stackList, void *key, bool (*compare)(void*, void*)){
-	stack_item ptr = *stackList;
+bool Stack_check(stack_item *stkList, void *key, bool (*compare)(void*, void*)){
+	stack_item ptr = *stkList;
 	while(ptr != NULL){
 		if(compare(ptr->key,key)){
 			return TRUE;
@@ -66,8 +66,8 @@ bool Stack_check(stack_item *stackList, void *key, bool (*compare)(void*, void*)
 }
 
 /*return key of the first item*/
-void* Stack_peek(stack_item *stackList){
-	return (*stackList)->key;
+void* Stack_peek(stack_item *stkList){
+	return (*stkList)->key;
 }
 /* Stack Structure END */
 
@@ -129,8 +129,28 @@ TL_level TL_outermost(void){
 TL_level TL_newLevel(TL_level parent, TMP_label name, U_boolList formals){
 	
 }
-TL_accessList TL_formals(TL_level level){
+TL_accessList TL_formals(TL_level levelb){
+	FRM_accessList frmAccList = FRM_formals(levelb->frame);
+	TL_accessList accListb = NULL;
+	TL_accessList accListHead = NULL;
 
+	for(;frmAccList != NULL; frmAccList = frmAccList->tail){
+		if(accListHead == NULL){
+			accListb = (TL_accessList)check_malloc(sizeof(struct TL_accessList_));
+			accListHead = accListb;
+		}
+		else{
+			accListb->tail = (TL_accessList)check_malloc(sizeof(struct TL_accessList_));
+			accListb = accListb->tail;
+		}
+		accListb->head = (TL_access)check_malloc(sizeof(struct TL_access_));
+		accListb->head->level = levelb;
+		accListb->head->access = frmAccList->head;
+	}
+	if(accListb != NULL){
+		accListb->tail = NULL;
+	}
+	return accListHead;
 }
 
 TL_level TL_getParent(TL_level parent){
@@ -160,11 +180,11 @@ static patchList PatchList(TMP_label *label, patchList list){
 	return new;
 }
 
-static void doPatch(patchList list, TMP_label label){
-	while(list != NULL){
-		if(*list->labelOnTree != NULL)
-			*list->labelOnTree = label;
-		list = list->next;
+static void doPatch(patchList plist, TMP_label label){
+	while(plist != NULL){
+		if(*plist->labelOnTree != NULL)
+			*plist->labelOnTree = label;
+		plist = plist->next;
 	}
 }
 
@@ -442,10 +462,10 @@ TL_exp TL_stringExp(string str_variable){
 	return TL_Ex(TR_Name(stringLabel));
 }
 
-TL_exp TL_arithExp(AST_oper operator, TL_exp leftExp, TL_exp rightExp){
+TL_exp TL_arithExp(AST_oper opera, TL_exp leftExp, TL_exp rightExp){
 	TR_exp expression;
 
-	switch(operator){
+	switch(opera){
 		case AST_plusOp:
 			expression = TR_Binop(TR_plus, unEx(leftExp), unEx(rightExp));
 			break;
@@ -467,14 +487,14 @@ TL_exp TL_arithExp(AST_oper operator, TL_exp leftExp, TL_exp rightExp){
 	return TL_Ex(expression);
 }
 
-TL_exp TL_logicExp(AST_oper operator, TL_exp leftExp, TL_exp rightExp, bool strCompare){
+TL_exp TL_logicExp(AST_oper opera, TL_exp leftExp, TL_exp rightExp, bool strCompare){
 	TR_stm statement;
 	patchList tLabel;
 	patchList fLabel;
 
 	if(strCompare){
 		TR_exp stringCompareCall = FRM_externalCall("stringEqual", TR_ExpList(unEx(leftExp), TR_ExpList(unEx(rightExp),NULL)));
-		switch(operator){
+		switch(opera){
 			case AST_eqOp:
 				statement = TR_Cjump(TR_eq, stringCompareCall, TR_Const(1), NULL, NULL);
 				break;
@@ -483,26 +503,93 @@ TL_exp TL_logicExp(AST_oper operator, TL_exp leftExp, TL_exp rightExp, bool strC
 				break;
 			default:
 				/*It shouldn't been reached'*/
-				printf("Illegal logical operator in string compare");
+				printf("Illegal logical operator in string compare reach here");
 				exit(2);
 		}
 	}
 	else{
-		switch(operator){
+		switch(opera){
 			case AST_eqOp:
-				statement = TR_Cjump(TR_eq,unEx(left))
+				statement = TR_Cjump(TR_eq, unEx(leftExp), unEx(rightExp), NULL, NULL);
+				break;
+			case AST_neqOp:
+				statement = TR_Cjump(TR_ne, unEx(leftExp), unEx(rightExp), NULL, NULL);
+				break;
+			case AST_ltOp:
+				statement = TR_Cjump(TR_lt, unEx(leftExp), unEx(rightExp), NULL, NULL);
+				break;
+			case AST_gtOp:
+				statement = TR_Cjump(TR_gt, unEx(leftExp), unEx(rightExp), NULL, NULL);
+				break;
+			case AST_leOp:
+				statement = TR_Cjump(TR_le, unEx(leftExp), unEx(rightExp), NULL, NULL);
+				break;
+			case AST_geOp:
+				statement = TR_Cjump(TR_ge, unEx(leftExp), unEx(rightExp), NULL, NULL);
+				break;
+			default:
+				printf("Illegal logical operator reach here");
+				exit(2);		
 		}
 	}
+	tLabel = PatchList(&statement->u.CJUMP.true, NULL);
+	fLabel = PatchList(&statement->u.CJUMP.false, NULL);
+	return TL_Cx(tLabel, fLabel, statement);
+
 }
-TL_exp TL_arrayExp(TL_exp size, TL_exp init);
-TL_exp TL_recordExp_new(int cnt);
-void TL_recordExp_app(TL_exp te, TL_exp init, bool last);
-TL_exp TL_seqExp(TL_exp*, int);
-TL_exp TL_voidExp(void);
+
+/*Init array */
+/*here I change Ex to Nx*/
+TL_exp TL_arrayExp(TL_exp sizeOfArray, TL_exp initVal){
+	return TL_Nx(FRM_externalCall("initArray", TR_ExpList(unEx(sizeOfArray), TR_ExpList(unEx(initVal), NULL))));
+}
+
+TL_exp TL_seqExp(TL_exp* array0fStm, int sizeOfArray){
+	TR_exp* p;
+	TR_exp head;
+
+	int cnt = 0;
+	int last = sizeOfArray - 1;
+	while(cnt < sizeOfArray){
+		if(i != last){
+			*p = TR_Eseq(unNx(arrayOfStm[i]), NULL);
+			p = &((*p)->u.ESEQ.exp);
+		}
+		else{
+			*p = unEx(arrayOfStm[i]);
+		}
+		if(i == 0){
+			head = *p;
+		}
+		i++;
+	}
+	return TL_Ex(head);
+}
+
+static TL_exp TL_voidReturn = NULL;
+TL_exp TL_voidExp(void){
+	if(TL_voidReturn == NULL){
+		TL_voidReturn = TL_Ex(TR_Const(0));
+	}
+	return TL_voidReturn;
+}
+
 TL_exp TL_callExp(TL_level caller_lvl, TL_level callee_lvl, TMP_label fun_label, TL_exp* argv, int args);
-void TL_procEntryExit(TL_level level, TL_exp body, TL_accessList formals, TMP_label label);
+
+void TL_procEntryExit(TL_level funLevel, TL_exp funBody, TL_accessList formals, TMP_label label){
+	TR_stm statement;
+	statement = TR_Seq(
+					TR_Label(label),
+					TR_Move(TR_Temp(FRM_RV()), unEx(funBody))
+	            );
+	/*In fragList stores frag about string and function
+	 *Now put the function frag into fragList*/
+	FRM_Proc(statement, funLevel->frame);
+}
 
 //Fragment list
-FRM_fragList TL_getResult(void);
+FRM_fragList TL_getResult(void){
+	return FRM_getFragList();
+}
 
 #endif
