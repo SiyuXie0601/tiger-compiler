@@ -5,9 +5,18 @@
 *Description: TIGER'S IR Translation Module
 **********************************************************************************/
 
+#include <stdlib.h>
+#include <stdio.h>
 #include "util.h"
 #include "frame.h"
 #include "temp.h"
+#include "tree.h"
+#include "frame.h"
+#include "mipsframe.h"
+#include "absyn.h"
+#include "translate.h"
+#include "printtree.h"
+
 
 
 /* Stack Structure START */
