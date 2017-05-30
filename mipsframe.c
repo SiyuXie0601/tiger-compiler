@@ -6,8 +6,12 @@
 			  fragList stores strings'(label, str) 
 			  and functions'(body, frame) label
 **********************************************************************************/
-
+#include <stdio.h>
+#include <stdlib.h>
+#include "util.h"
+#include "symbol.h"
 #include "temp.h"
+#include "tree.h"
 #include "frame.h"
 #include "util.h"
 #include "mipsframe.h"
