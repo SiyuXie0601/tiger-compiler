@@ -8,6 +8,14 @@
 #ifndef _FRAME_H_
 #define _FRAME_H_
 
+typedef struct FRM_frame_ *FRM_frame;
+typedef struct FRM_access_ *FRM_access;
+
+typedef struct FRM_accessList_ *FRM_accessList;
+struct FRM_accessList_ {
+	FRM_access head;
+	FRM_accessList tail;
+};
 /*return Registers' TMP_temp*/
  TMP_temp FRM_FP();
  TMP_temp FRM_RA();
@@ -21,13 +29,13 @@
 
 /*Will be called in main.c
  *Add register's temp label in TAB_table*/
-TMP_map _FRM_tempMap();
+TMP_map FRM_tempMap();
 
 typedef enum {
-	specialregs, 	//special regs like FP, RV, RA
-	argregs, 	//regs to pass arguments
-	calleesaves, 	//regs that callee must not change (or save-restore)
-	callersaves	//regs that caller must preserve since callee may affect them
+	specialRegisters, 	//special regs like FP, RV, RA
+	argRegisters, 	//regs to pass arguments
+	calleesaveRegisters, 	//regs that callee must not change (or save-restore)
+	callersaveRegisters	//regs that caller must preserve since callee may affect them
 } RList_type ;
 
 /*will be called in mipcodegen.c
@@ -66,25 +74,16 @@ FRM_fragList FRM_FragList(FRM_frag key, FRM_fragList tail);
 static FRM_frag* extendFragList();
 void FRM_String(TMP_label strLabel, string str);
 void FRM_Proc(TR_stm funBody, FRM_frame frame);
-FRM_fragList FRM_getRegList();
 
 
 
 
 
 /*FRM_access_ and FRM_frame_ are defined in mipsframe.h*/
-typedef struct FRM_frame_ *FRM_frame;
-typedef struct FRM_access_ *FRM_access;
-
-typedef struct FRM_accessList_ *FRM_accessList;
-struct FRM_accessList_ {
-	FRM_access head;
-	FRM_accessList tail;
-};
 extern const int FRM_wordSize;
 TR_exp FRM_Exp(FRM_access acc, TR_exp frmPtr);
 FRM_access FRM_staticLink();
-FRM_frame FRM_newFrame(TMP_label frmName, U_boolList argFormals);
+FRM_frame FRM_newFrame(TMP_label frmName, UN_boolList argFormals);
 TMP_label FRM_name(FRM_frame frm);
 FRM_accessList FRM_formals(FRM_frame frm);
 FRM_access FRM_allocLocal(FRM_frame frm, bool escape);

@@ -39,7 +39,7 @@ TR_stm TR_Label(TMP_label l)
 }
  
 TR_stm TR_Jump(TR_exp expression, TMP_labelList lbls)
-{TR_stm ptr = (TR_stm) check_malloc(sizeof *p);
+{TR_stm ptr = (TR_stm) check_malloc(sizeof *ptr);
  ptr->kind=TR_JUMP;
  ptr->u.JUMP.exp=expression;
  ptr->u.JUMP.jumps=lbls;
@@ -48,16 +48,16 @@ TR_stm TR_Jump(TR_exp expression, TMP_labelList lbls)
 
 TR_stm TR_Cjump(TR_relOp opera, TR_exp l, TR_exp r, 
 	      TMP_label truel, TMP_label falsel)
-{TR_stm ptr = (TR_stm) check_malloc(sizeof *p);
+{TR_stm ptr = (TR_stm) check_malloc(sizeof *ptr);
  ptr->kind=TR_CJUMP;
- ptr->u.CJUMP.op=opera; p->u.CJUMP.left=l; p->u.CJUMP.right=r;
+ ptr->u.CJUMP.op=opera; ptr->u.CJUMP.left=l; ptr->u.CJUMP.right=r;
  ptr->u.CJUMP.true=truel;
  ptr->u.CJUMP.false=falsel;
  return ptr;
 }
  
 TR_stm TR_Move(TR_exp destination, TR_exp source)
-{TR_stm ptr = (TR_stm) check_malloc(sizeof *p);
+{TR_stm ptr = (TR_stm) check_malloc(sizeof *ptr);
  ptr->kind=TR_MOVE;
  ptr->u.MOVE.dst=destination;
  ptr->u.MOVE.src=source;

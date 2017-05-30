@@ -24,3 +24,10 @@ string String(char *str){
 	strcpy(ptr, str);
 	return ptr;
 }
+
+UN_boolList UN_BoolList(bool head, UN_boolList tail)
+{ UN_boolList list = check_malloc(sizeof(*list));
+  list->head = head;
+  list->tail = tail;
+  return list;
+}

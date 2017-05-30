@@ -12,7 +12,7 @@
 
 
 AST_var AST_SimpleVar(AST_pos pos, SB_symbol sym)
-{AST_var p = checked_malloc(sizeof(*p));
+{AST_var p = check_malloc(sizeof(*p));
  p->kind=AST_simpleVar;
  p->pos=pos;
  p->u.simple=sym;
@@ -20,7 +20,7 @@ AST_var AST_SimpleVar(AST_pos pos, SB_symbol sym)
 }
 
 AST_var AST_FieldVar(AST_pos pos, AST_var var, SB_symbol sym)
-{AST_var p = checked_malloc(sizeof(*p));
+{AST_var p = check_malloc(sizeof(*p));
  p->kind=AST_fieldVar;
  p->pos=pos;
  p->u.field.var=var;
@@ -29,7 +29,7 @@ AST_var AST_FieldVar(AST_pos pos, AST_var var, SB_symbol sym)
 }
 
 AST_var AST_SubscriptVar(AST_pos pos, AST_var var, AST_exp exp)
-{AST_var p = checked_malloc(sizeof(*p));
+{AST_var p = check_malloc(sizeof(*p));
  p->kind=AST_subscriptVar;
  p->pos=pos;
  p->u.subscript.var=var;
@@ -39,7 +39,7 @@ AST_var AST_SubscriptVar(AST_pos pos, AST_var var, AST_exp exp)
 
 
 AST_exp AST_VarExp(AST_pos pos, AST_var var)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_varExp;
  p->pos=pos;
  p->u.var=var;
@@ -47,14 +47,14 @@ AST_exp AST_VarExp(AST_pos pos, AST_var var)
 }
 
 AST_exp AST_NilExp(AST_pos pos)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_nilExp;
  p->pos=pos;
  return p;
 }
 
 AST_exp AST_IntExp(AST_pos pos, int i)
-{ AST_exp p = checked_malloc(sizeof(*p));
+{ AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_intExp;
  p->pos=pos;
  p->u.intt=i;
@@ -62,7 +62,7 @@ AST_exp AST_IntExp(AST_pos pos, int i)
 }
 
 AST_exp AST_StringExp(AST_pos pos, string s)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_stringExp;
  p->pos=pos;
  p->u.stringg=s;
@@ -72,7 +72,7 @@ AST_exp AST_StringExp(AST_pos pos, string s)
 AST_exp AST_OpExp(AST_pos pos, AST_oper oper, AST_exp left, AST_exp right)
 {
 	
-	AST_exp p = checked_malloc(sizeof(*p));
+	AST_exp p = check_malloc(sizeof(*p));
 	p->kind = AST_opExp;
 	p->pos = pos;
 	p->u.op.oper = oper;
@@ -85,7 +85,7 @@ AST_exp AST_OpExp(AST_pos pos, AST_oper oper, AST_exp left, AST_exp right)
 
 
 AST_exp AST_SeqExp(AST_pos pos, AST_expList seq)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_seqExp;
  p->pos=pos;
  p->u.seq=seq;
@@ -93,7 +93,7 @@ AST_exp AST_SeqExp(AST_pos pos, AST_expList seq)
 }
 
 AST_exp AST_AssignExp(AST_pos pos, AST_var var, AST_exp exp)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_assignExp;
  p->pos=pos;
  p->u.assign.var=var;
@@ -103,7 +103,7 @@ AST_exp AST_AssignExp(AST_pos pos, AST_var var, AST_exp exp)
 }
 
 AST_exp AST_IfExp(AST_pos pos, AST_exp test, AST_exp then, AST_exp elsee)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_ifExp;
  p->pos=pos;
  p->u.iff.test=test;
@@ -113,7 +113,7 @@ AST_exp AST_IfExp(AST_pos pos, AST_exp test, AST_exp then, AST_exp elsee)
 }
 
 AST_exp AST_WhileExp(AST_pos pos, AST_exp test, AST_exp body)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_whileExp;
  p->pos=pos;
  p->u.whilee.test=test;
@@ -122,7 +122,7 @@ AST_exp AST_WhileExp(AST_pos pos, AST_exp test, AST_exp body)
 }
 
 AST_exp AST_ForExp(AST_pos pos, SB_symbol var, AST_exp lo, AST_exp hi, AST_exp body)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_forExp;
  p->pos=pos;
  p->u.forr.var=var;
@@ -136,7 +136,7 @@ AST_exp AST_ForExp(AST_pos pos, SB_symbol var, AST_exp lo, AST_exp hi, AST_exp b
 
 
 AST_exp AST_LetExp(AST_pos pos, AST_decList decs, AST_exp body)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_letExp;
  p->pos=pos;
  p->u.let.decs=decs;
@@ -145,7 +145,7 @@ AST_exp AST_LetExp(AST_pos pos, AST_decList decs, AST_exp body)
 }
 
 AST_exp AST_ArrayExp(AST_pos pos, SB_symbol typ, AST_exp size, AST_exp init)
-{AST_exp p = checked_malloc(sizeof(*p));
+{AST_exp p = check_malloc(sizeof(*p));
  p->kind=AST_arrayExp;
  p->pos=pos;
  p->u.array.typ=typ;
@@ -156,7 +156,7 @@ AST_exp AST_ArrayExp(AST_pos pos, SB_symbol typ, AST_exp size, AST_exp init)
 
 
 AST_dec AST_VarDec(AST_pos pos, SB_symbol var, SB_symbol typ, AST_exp init)
-{AST_dec p = checked_malloc(sizeof(*p));
+{AST_dec p = check_malloc(sizeof(*p));
  p->kind=AST_varDec;
  p->pos=pos;
  p->u.var.var=var;
@@ -169,7 +169,7 @@ AST_dec AST_VarDec(AST_pos pos, SB_symbol var, SB_symbol typ, AST_exp init)
 }
 
 AST_dec AST_TypeDec(AST_pos pos, AST_nametyList type)
-{AST_dec p = checked_malloc(sizeof(*p));
+{AST_dec p = check_malloc(sizeof(*p));
  p->kind=AST_typeDec;
  p->pos=pos;
  p->u.type=type;
@@ -178,7 +178,7 @@ AST_dec AST_TypeDec(AST_pos pos, AST_nametyList type)
 
 
 AST_ty AST_ArrayTy(AST_pos pos, SB_symbol array)
-{AST_ty p = checked_malloc(sizeof(*p));
+{AST_ty p = check_malloc(sizeof(*p));
  p->kind=AST_arrayTy;
  p->pos=pos;
  p->u.array=array;
@@ -187,7 +187,7 @@ AST_ty AST_ArrayTy(AST_pos pos, SB_symbol array)
 
 
 AST_expList AST_ExpList(AST_exp head, AST_expList tail)
-{AST_expList p = checked_malloc(sizeof(*p));
+{AST_expList p = check_malloc(sizeof(*p));
  p->head=head;
  p->tail=tail;
  return p;
@@ -196,21 +196,21 @@ AST_expList AST_ExpList(AST_exp head, AST_expList tail)
 
 
 AST_decList AST_DecList(AST_dec head, AST_decList tail)
-{AST_decList p = checked_malloc(sizeof(*p));
+{AST_decList p = check_malloc(sizeof(*p));
  p->head=head;
  p->tail=tail;
  return p;
 }
 
 AST_namety AST_Namety(SB_symbol name, AST_ty ty)
-{AST_namety p = checked_malloc(sizeof(*p));
+{AST_namety p = check_malloc(sizeof(*p));
  p->name=name;
  p->ty=ty;
  return p;
 }
 
 AST_nametyList AST_NametyList(AST_namety head, AST_nametyList tail)
-{AST_nametyList p = checked_malloc(sizeof(*p));
+{AST_nametyList p = check_malloc(sizeof(*p));
  p->head=head;
  p->tail=tail;
  return p;
@@ -499,7 +499,7 @@ void print_WhileExp(AST_exp exp, int indent) {
 
 void print_ForExp(AST_exp exp, int indent) {
   print_indent(indent);
-  printf("For: ", exp->u.forr.escape);
+  printf("For: %d", exp->u.forr.escape);
 
   print_indent(indent);
   printf(" escape = %d", exp->u.forr.escape);

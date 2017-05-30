@@ -123,7 +123,7 @@ static TMP_map _FRM_tempMap = NULL;
 
 /*Will be called in main.c
  *Add register's temp label in TAB_table*/
-TMP_map _FRM_tempMap(){
+TMP_map FRM_tempMap(){
     if(_FRM_tempMap == NULL){
         _FRM_tempMap = TMP_empty();
         TMP_enter(_FRM_tempMap, FRM_RV(),String("$v0"));
@@ -134,18 +134,18 @@ TMP_map _FRM_tempMap(){
         int index;
         for(index = 0; index < 8; index++){
             char* name = check_malloc(8*sizeof(char));
-            sprintf(name, "$s%d", i);
-            TMP_enter(_FRM_tempMap, FRM_SN(i), name);
+            sprintf(name, "$s%d", index);
+            TMP_enter(_FRM_tempMap, FRM_SN(index), name);
         }
         for(index = 0; index < 10; index++){
             char* name = check_malloc(8*sizeof(char));
-            sprintf(name, "$s%d", i);
-            TMP_enter(_FRM_tempMap, FRM_TN(i), name);
+            sprintf(name, "$s%d", index);
+            TMP_enter(_FRM_tempMap, FRM_TN(index), name);
         }
         for(index = 0; index < 4; index++){
             char* name = check_malloc(8*sizeof(char));
-            sprintf(name, "$s%d", i);
-            TMP_enter(_FRM_tempMap, FRM_AN(i), name);
+            sprintf(name, "$s%d", index);
+            TMP_enter(_FRM_tempMap, FRM_AN(index), name);
         }
     }
     return _FRM_tempMap;
@@ -229,7 +229,7 @@ void FRM_printFrag(FRM_frag frag);
 FRM_frag FRM_StringFrag(TMP_label strlabel, string str){
 	FRM_frag strFrag = (FRM_frag)check_malloc(sizeof(struct FRM_frag_));
 	strFrag->kind = FRM_stringFrag;
-	strFrag->u.stringg.label = strLabel;
+	strFrag->u.stringg.label = strlabel;
 	strFrag->u.stringg.str = str;
 	return strFrag;
 }
@@ -278,10 +278,6 @@ void FRM_Proc(TR_stm funBody, FRM_frame frame){
 	*curFrag = FRM_ProcFrag(funBody, frame);
 }
 
-FRM_fragList FRM_getRegList(){
-	return fragList_head;
-}
-
 /*produce IR tree(TR_Mem) to access target address*/
 TR_exp FRM_Exp(FRM_access acc, TR_exp frmPtr){
 	/*variable is in frame*/
@@ -301,8 +297,8 @@ static FRM_access InFrame(int frameOffset){
 	return access;
 }
 
-static FRM_access InReg(Temp_temp reg){
-	FRM_access access = (FRM_access)checked_malloc(sizeof(struct FRM_access_));
+static FRM_access InReg(TMP_temp reg){
+	FRM_access access = (FRM_access)check_malloc(sizeof(struct FRM_access_));
 	access->kind = inReg;
 	access->u.reg = reg;
 	return access;
@@ -325,7 +321,7 @@ FRM_access FRM_staticLink(){
 	return static_access;
 }
 
-FRM_frame FRM_newFrame(TMP_label frmName, U_boolList argFormals){
+FRM_frame FRM_newFrame(TMP_label frmName, UN_boolList argFormals){
 	/*new a frame*/
 	FRM_frame frm = (FRM_frame)check_malloc(sizeof(struct FRM_frame_));
 	frm->offset = 0;
@@ -337,11 +333,11 @@ FRM_frame FRM_newFrame(TMP_label frmName, U_boolList argFormals){
 	/*add all args into frame's accessList*/
 	for(; argFormals != NULL; argFormals = argFormals->tail){
 		if(accessList_head == NULL){
-			accessList = (FRM_accessList)checked_malloc(sizeof(struct FRM_accessList_));
+			accessList = (FRM_accessList)check_malloc(sizeof(struct FRM_accessList_));
 			accessList_head = accessList;
 		} 
 		else {
-			accessList->tail = (FRM_accessList)checked_malloc(sizeof(struct FRM_accessList_));
+			accessList->tail = (FRM_accessList)check_malloc(sizeof(struct FRM_accessList_));
 			accessList = accessList->tail;
 		}
 
@@ -377,8 +373,8 @@ FRM_access FRM_allocLocal(FRM_frame frm, bool escape){
 	FRM_access access;
 	if(escape == TRUE){
 	/*store in memory*/
-		access = InFrame(frame->offset);
-		frm->offset -= F_wordSize;
+		access = InFrame(frm->offset);
+		frm->offset -= FRM_wordSize;
 	} 
 	/*store in register*/
 	else {
@@ -392,10 +388,10 @@ TR_exp FRM_externalCall(string name, TR_expList arguments){
 }
 
 /*return an escapelist with all TRUES*/
-static void createEscapeList(U_boolList *escs, int index){
-	int node_size = (sizeof(struct U_boolList_))/8;
-	U_boolList ptr = (U_boolList)check_malloc(i*sizeof(struct U_boolList_))
-	U_boolList ptr_head = ptr;
+static void createEscapeList(UN_boolList *escs, int index){
+	int node_size = (sizeof(struct UN_boolList_))/8;
+	UN_boolList ptr = (UN_boolList)check_malloc(index *sizeof(struct UN_boolList_));
+	UN_boolList ptr_head = ptr;
 
 	for(;index > 0; index--){
 		ptr->head = TRUE;

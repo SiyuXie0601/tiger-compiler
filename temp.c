@@ -41,7 +41,7 @@ TMP_label TMP_namedlabel(string name){
 static int temps = 100;
 struct TMP_temp_ {int num;};
 
-TMP_label TMP_newtemp(){
+TMP_temp TMP_newtemp(){
     TMP_temp ptr = (TMP_temp)check_malloc(sizeof(*ptr));
     ptr->num = temps++;
     char num[16];
@@ -67,10 +67,10 @@ TMP_map newMap(TB_table table, TMP_map under){
 }
 
 TMP_map TMP_empty(){
-    return newMap(TB_empty(), NULL);
+    return newMap(TB_create(), NULL);
 }
 
-/*????????????????????????????????????????//*/
+/*????????????????????????????????????????*/
 TMP_map TMP_layerMap(TMP_map overM, TMP_map underM){
     if(overM == NULL){
         return underM;
@@ -82,7 +82,7 @@ TMP_map TMP_layerMap(TMP_map overM, TMP_map underM){
 
 void TMP_enter(TMP_map map, TMP_temp te, string str){
     assert(map && map->tab);
-    TB_enter(map->tab, te, str);
+    TB_push(map->tab, te, str);
 }
 
 string TMP_look(TMP_map map, TMP_temp te){
@@ -105,7 +105,7 @@ TMP_tempList TMP_TempList(TMP_temp head, TMP_tempList tail)
 
 TMP_labelList TMP_LabelList(TMP_label head, TMP_labelList tail)
 {TMP_labelList ptr = (TMP_labelList) check_malloc(sizeof (*ptr));
- ptr->head=head; p->tail=tail;
+ ptr->head=head; ptr->tail=tail;
  return ptr;
 }
 

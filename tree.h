@@ -6,7 +6,9 @@
 **********************************************************************************/
 
 #ifndef _TREE_H_
-#define _TREE_H_
+#define _TREE_H
+
+//#include "tree.h"_
 
 typedef struct TR_stm_ *TR_stm;
 typedef struct TR_exp_ *TR_exp;
@@ -24,10 +26,10 @@ typedef enum  {TR_eq, TR_ne, TR_lt, TR_gt, TR_le, TR_ge,
 struct TR_stm_ {enum {TR_SEQ, TR_LABEL, TR_JUMP, TR_CJUMP, TR_MOVE,
 		       TR_EXP} kind;
 	       union {struct {TR_stm left, right;} SEQ;
-		      Temp_label LABEL;
-		      struct {TR_exp exp; Temp_labelList jumps;} JUMP;
+		      TMP_label LABEL;
+		      struct {TR_exp exp; TMP_labelList jumps;} JUMP;
 		      struct {TR_relOp op; TR_exp left, right;
-			      Temp_label true, false;} CJUMP;
+			      TMP_label true, false;} CJUMP;
 		      struct {TR_exp dst, src;} MOVE;
 		      TR_exp EXP;
 		    } u;
@@ -37,9 +39,9 @@ struct TR_exp_ {enum {TR_BINOP, TR_MEM, TR_TEMP, TR_ESEQ, TR_NAME,
 		      TR_CONST, TR_CALL} kind;
 	      union {struct {TR_binOp op; TR_exp left, right;} BINOP;
 		     TR_exp MEM;
-		     Temp_temp TEMP;
+		     TMP_temp TEMP;
 		     struct {TR_stm stm; TR_exp exp;} ESEQ;
-		     Temp_label NAME;
+		     TMP_label NAME;
 		     int CONST;
 		     struct {TR_exp fun; TR_expList args;} CALL;
 		   } u;

@@ -42,7 +42,7 @@ static bool looseTypeCompare(TP_tp m, TP_tp n){
 		return TRUE;
 	}
 
-	return FLASE;
+	return FALSE;
 }
 
 /*
@@ -73,7 +73,7 @@ static bool comparePointer(void *m, void *n){
 static stack_item type_sym_stack = NULL;
 static void Type_sym_stack_push(SB_symbol sb);
 static void Type_sym_stack_pop();
-static void Type_sym_stack_look(SB_symbol sb);
+static bool Type_sym_stack_look(SB_symbol sb);
 static void Type_sym_stack_empty();
 
 static void Type_sym_stack_push(SB_symbol sb){
@@ -95,26 +95,10 @@ static TP_tp generateTp(AST_ty a){
 	switch(a->kind){
 		case AST_arrayTy:
 			return TP_Array(NULL);
-}
-
-static void transTp(SB_table typeEV, SB_symbol sb, AST_ty a){
-	SB_symbol sym;
-	TP_tp tp;
-	
-	TP_tp cur_tp = SB_look(typeEV, sb);
-	switch (a->kind){
-		case AST_arrayTy:
-			sym = a->u.array;
-			tp = SB_look(typeEV, sym);
-			if(tp == NULL){
-				SM_info(FATAL, a->pos, "undefined type:'%s'", SB_name(sym));
-			}
-			else{
-				cur_tp->u.array = tp;
-			}
-			break;
+		default:;
 	}
 }
+
 
 
 /*
@@ -163,24 +147,45 @@ static struct exp_tp SM_check_exit(sm_error_level level){
 	return *empty_exp_tp;
 }
 
+
+static void transTp(SB_table typeEV, SB_symbol sb, AST_ty a){
+	SB_symbol sym;
+	TP_tp tp;
+	
+	TP_tp cur_tp = SB_look(typeEV, sb);
+	switch (a->kind){
+		case AST_arrayTy:
+			sym = a->u.array;
+			tp = SB_look(typeEV, sym);
+			if(tp == NULL){
+				SM_info(FATAL, a->pos, "undefined type:'%s'", SB_name(sym));
+			}
+			else{
+				cur_tp->u.array = tp;
+			}
+			break;
+	}
+}
+
+
 void initialize(){
-	empty_exp_tp = check_malloc(sizeof(*tp));
+	empty_exp_tp = check_malloc(sizeof(*empty_exp_tp));
 	empty_exp_tp->exp = TL_voidExp();
 	empty_exp_tp->tp = TP_Void(); 
 }
 
-FRM_fraglist SM_transProgram(AST_exp exp){
+FRM_fragList SM_transProgram(AST_exp exp){
 	initialize();
 
 	SB_table valueEV = EV_base_valueEV();
 	SB_table typeEV = EV_base_typeEV();
 
-	TL_level = rootLevel = TL_newLevel(TL_outermost(), TMP_namedlabel("_main_"), NULL);
+	TL_level rootLevel = TL_newLevel(TL_outermost(), TMP_namedlabel("_main_"), NULL);
 	struct exp_tp result = transExp(rootLevel, valueEV, typeEV, exp);
 	
 	// print IR tree
 	TL_printTree(result.exp);
-	TL_procEntryExit(rootLevel, result.exp, TL_formals(rootLevel));
+	TL_procEntryExit(rootLevel, result.exp, TL_formals(rootLevel), TMP_newlabel());
 
 	hasError = (SM_alert_level >= (int)ERROR)?TRUE:FALSE;
 	
@@ -197,7 +202,7 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 	TP_tp tp;
 
 	// AST_letExp
-	AST_declist d;
+	AST_decList d;
 
 	// AST_opExp
 	struct exp_tp left_exp_tp;
@@ -232,7 +237,7 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 	TP_tp arr_tp;
 	struct exp_tp arr_exp_tp;
 	
-	if(a == NULL){
+	if(e == NULL){
 		return *empty_exp_tp;
 	}
 
@@ -261,8 +266,8 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 		case AST_opExp:
 			left_exp_tp = transExp(level, valueEV, typeEV, e->u.op.left);
 			right_exp_tp = transExp(level, valueEV, typeEV, e->u.op.right);
-			left_tp = actual_tp(left_exp_tp);
-			right_tp = axtual_tp(right_exp_tp);
+			left_tp = actual_tp(left_exp_tp.tp);
+			right_tp = axtual_tp(right_exp_tp.tp);
 			oper = e->u.op.oper;
 
 			switch (oper){
@@ -346,7 +351,7 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 			// calculate the number of exps in the list
 			i = 0;
 			for(expList = e->u.seq;expList !=NULL; expList = expList->tail){
-				if(expLIst->head != NULL){
+				if(expList->head != NULL){
 					i ++;
 				}
 			}
@@ -356,7 +361,7 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 			}
 			else{
 				// create an array to store each sub expression
-				te_list = check_malloc(i * sizeof(*TL_exp));
+				te_list = check_malloc(i * sizeof(*te_list));
 				
 				// generate IR for each sub exp
 				for(expList = e->u.seq, i = 0;expList != NULL; expList = expList->tail){
@@ -505,13 +510,13 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 			// create an array to store all the expressions, including 
 			// variable declaration
 			// seqExp between in and end
-			te_list = check_malloc((i + 1) * sizeof(TL_exp));
+			te_list = check_malloc((i + 1) * sizeof(*te_list));
 			i = 0;
 
 			// translate declarations in given order
 			for(d = e->u.let.decs;d;d = d->tail){
 				if(d->head != NULL){
-					te_list[i] = transDec(level, vaueEV, typeEV, d->head);
+					te_list[i] = transDec(level, valueEV, typeEV, d->head);
 					i ++;
 				}
 			}
@@ -545,7 +550,7 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 
 			// check whether the size is integer type
 			exp_tp = transExp(level, valueEV, typeEV, e->u.array.size);
-			if(actual_tp(exp_t.tp)->kind != TP_int){
+			if(actual_tp(exp_tp.tp)->kind != TP_int){
 				SM_info(SEVERE, e->u.array.size->pos, "size of an array must be of integer type!");
 			}
 
@@ -553,7 +558,7 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 			arr_tp = actual_tp(tp->u.array);
 			arr_exp_tp = transExp(level, valueEV, typeEV, e->u.array.init);
 
-			if(arr_tp != actual_tp(arr_exp_tp)){
+			if(arr_tp != actual_tp(arr_exp_tp.tp)){
 				SM_info(SEVERE, e->u.array.init->pos, "initializer of an array's element must follow declared type!");
 			}
 
@@ -590,7 +595,7 @@ struct exp_tp transVar(TL_level level, SB_table valueEV, SB_table typeEV, AST_va
 		case AST_subscriptVar:
 			// translate the part ahead of '[', which must be an array
 			exp = transVar(level, valueEV, typeEV, v->u.subscript.var);
-			if(exp->kind != TP_array){
+			if(exp.tp->kind != TP_array){
 				SM_info(FATAL, v->pos, "index access to a non-array variable!");
 				break;
 			}
@@ -607,7 +612,7 @@ struct exp_tp transVar(TL_level level, SB_table valueEV, SB_table typeEV, AST_va
 	}
 	return SM_check_exit(FATAL);
 }
-struct TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_dec d){
+TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_dec d){
 	SB_symbol sym;
 	AST_nametyList types;
 	AST_namety type;
@@ -632,7 +637,7 @@ struct TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_de
 			// determine the var's type
 			if(d->u.var.typ != NULL){
 				decTp = SB_look(typeEV, d->u.var.typ);
-				if(devTp == NULL || !looseTypeCompare(tp, decTp)){
+				if(decTp == NULL || !looseTypeCompare(tp, decTp)){
 					SM_info(ERROR, d->pos, "The initializer of variable '%s' is incompatible with the declared type!", SB_name(sym));
 				}	
 			}
@@ -659,7 +664,7 @@ struct TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_de
 						type_sym_stack_psh(type->name);
 					}
 
-					SB_enter(typeEV, type_>name, generateTp(type->ty));
+					SB_enter(typeEV, type->name, generateTp(type->ty));
 				}
 
 			}
@@ -668,7 +673,7 @@ struct TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_de
 			for(types = d->u.type; types != NULL; types = types->tail){
 				type = types->head;
 				if(type != NULL){
-					transTp(typeEV, type->name, type->ty)
+					transTp(typeEV, type->name, type->ty);
 				}
 			}
 
@@ -705,103 +710,5 @@ SB_table EV_base_typeEv(){
 SB_table EV_base_valueEv(){
 	SB_table table = SB_empty();
 	return table;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 

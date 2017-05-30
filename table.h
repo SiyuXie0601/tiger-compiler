@@ -13,12 +13,12 @@ struct binditem_{
 	void *value;
 	binditem next;
 	void *previtem;
-}
+};
 typedef struct TB_table_ *TB_table;
 struct TB_table_{
-    tableitem table[TBSIZE];
+    binditem table[TBSIZE];
 	void *curitem;
-}
+};
 
 /*
  * create a new table mapping "key" to "value"
@@ -33,7 +33,7 @@ void TB_push(TB_table t, void *key, void *value);
 /*
  * look up the most recent binding for "key" in table "t"
  */
-void TB_look(TB_table t, void *key);
+void *TB_look(TB_table t, void *key);
 
 /*
  * pop the most recent binding and return its key.

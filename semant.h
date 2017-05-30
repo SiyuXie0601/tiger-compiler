@@ -5,13 +5,16 @@
 #ifndef _SEMANT_H_
 #define _SEMANT_H_
 
-bool hasError = false;
+#include "frame.h"
+#include "mipsframe.h"
+
+bool hasError = FALSE;
 
 /*
  * the main interface of this module
  * if any error has occured, the external hasError will be set TRUE
  */
-FRM_fraglist SM_transProgram(AST_exp exp);
+FRM_fragList SM_transProgram(AST_exp exp);
 
 /*
  * Environment Module
@@ -28,7 +31,7 @@ struct EV_item_ {
 			TP_tp tp;
 		} var;
 	} u;
-}
+};
 
 EV_item EV_VarItem(TL_access access, TP_tp tp);
 
@@ -42,12 +45,11 @@ SB_table EV_base_valueEv();
 struct exp_tp{
 	TL_exp exp;
 	TP_tp tp;
-}
+};
 
-struct exp_tp Exp_Tp(TL_exp exp, Tp_tp tp);
+struct exp_tp Exp_Tp(TL_exp exp, TP_tp tp);
 struct exp_tp transVar(TL_level level, SB_table valueEV, SB_table typeEV, AST_var v);
 struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_exp e);
-struct TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_dec d);
-void transTp(SB_table typeEV, SB_symbol sym, AST_ty a);
+TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_dec d);
 
 #endif

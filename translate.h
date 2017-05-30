@@ -36,7 +36,7 @@ TL_accessList TL_AccessList(TL_access head, TL_accessList tail);
 typedef struct TL_level_ *TL_level;
 
 TL_level TL_outermost(void);
-TL_level TL_newLevel(TL_level parent, TMP_label name, U_boolList formals);
+TL_level TL_newLevel(TL_level parent, TMP_label name, UN_boolList formals);
 TL_accessList TL_formals(TL_level levelb);
 TL_access TL_allocLocal(TL_level level, bool escape);
 TL_level TL_getParent(TL_level parent);

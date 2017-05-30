@@ -32,7 +32,7 @@ void TB_push(TB_table t, void *key, void *value){
 	t->curitem = key;
 }
 
-void TB_look(TB_table t, void *key){
+void *TB_look(TB_table t, void *key){
 	int tableidx = 0;
 	assert(t && key);
 	binditem item;

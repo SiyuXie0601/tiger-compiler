@@ -12,4 +12,10 @@ void *check_malloc(int);
 void check_free(void *ptr);
 string String(char *);
 
+typedef struct UN_boolList_ *UN_boolList;
+struct UN_boolList_ {bool head; UN_boolList tail;};
+UN_boolList UN_BoolList(bool head, UN_boolList tail);
+
+
+
 #endif
