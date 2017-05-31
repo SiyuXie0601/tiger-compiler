@@ -86,7 +86,7 @@ void* Stack_peek(stack_item *stkList){
  *so that when break statement is constructed
  *it knows where to jump to
  */
-static stack_node L_label_stack = NULL;
+static stack_item L_label_stack = NULL;
 
 static void LLS_push(TMP_label label){
 	Stack_push(&L_label_stack, label);
@@ -135,7 +135,7 @@ TL_level TL_outermost(void){
 /*Related to function.
  *Will be implemented in second version.
  */
-TL_level TL_newLevel(TL_level parent, TMP_label name, U_boolList formals){
+TL_level TL_newLevel(TL_level parent, TMP_label name, UN_boolList formals){
 	
 }
 TL_accessList TL_formals(TL_level levelb){
@@ -230,7 +230,9 @@ static TL_exp TL_Cx(patchList trueList, patchList falseList, TR_stm stm){
  functions are named by TR_ + some parts' name which will be translated into statement or expression later'*/
 static TR_exp unEx(TL_exp exp){
 	TR_exp tree;
-	
+	TMP_temp value;
+	TMP_label tLabel, fLabel;
+
 	switch(exp->kind){
 		case TL_ex:
 			tree = exp->u.ex;
@@ -244,10 +246,10 @@ static TR_exp unEx(TL_exp exp){
 			fLabel = TMP_newlabel();
 			doPatch(exp->u.cx.trues, tLabel);
 			doPatch(exp->u.cx.falses, fLabel);
-			tree = TR_Eseq(TR_Move(TR_Temp(value), T_Const(1)),
+			tree = TR_Eseq(TR_Move(TR_Temp(value), TR_Const(1)),
 						TR_Eseq(exp->u.cx.stm,
 							TR_Eseq(TR_Label(fLabel),
-								TR_Eseq(TR_Move(TR_Temp(value), T_Const(0)),
+								TR_Eseq(TR_Move(TR_Temp(value), TR_Const(0)),
 									TR_Eseq(TR_Label(tLabel),
 										    TR_Temp(value)
 									)
@@ -262,14 +264,15 @@ static TR_exp unEx(TL_exp exp){
 
 static TR_stm unNx(TL_exp exp){
 	TR_stm tree;
+	TMP_label tLabel, fLabel;
 	switch(exp->kind){
-		case TR_ex:
+		case TL_ex:
 			tree = TR_Exp(exp->u.ex);
 			break;
-		case TR_nx:
+		case TL_nx:
 			tree = exp->u.nx;
 			break;
-		case TR_cx:
+		case TL_cx:
 			tLabel = TMP_newlabel();
 			fLabel = TMP_newlabel();
 			doPatch(exp->u.cx.trues, tLabel);
@@ -287,15 +290,15 @@ static struct Cx unCx(TL_exp exp){
 	 struct Cx conditionx;
 
 	 switch(exp->kind){
-		 case TR_ex:
-			 conditionx.stm = T_Cjump(TR_ne, exp->u.ex, TR_Const(0),NULL, NULL);
+		 case TL_ex:
+			 conditionx.stm = TR_Cjump(TR_ne, exp->u.ex, TR_Const(0),NULL, NULL);
 			 conditionx.trues = PatchList(&conditionx.stm->u.CJUMP.true, NULL);
 			 conditionx.falses = PatchList(&conditionx.stm->u.CJUMP.false, NULL);
 			 break;
-		 case TR_cx:
+		 case TL_cx:
 			 conditionx = exp->u.cx;
 			 break;
-		 case TR_nx:
+		 case TL_nx:
 			 conditionx.trues = NULL;
 			 conditionx.falses = NULL;
 			 conditionx.stm = exp->u.nx;
@@ -315,9 +318,9 @@ TL_exp TL_assignExp(TL_exp lval, TL_exp rval){
 }
 TL_exp TL_forExp(TL_exp vari, TL_exp lowv, TL_exp highv, TL_exp body){
 	TR_stm statement;
-	TMP_Label tLabel = TMP_newlabel();
-	TMP_Label fLabel = LLS_peek();//Get donw label from the list
-    TMP_Label sLabel = TMP_newlabel();
+	TMP_label tLabel = TMP_newlabel();
+	TMP_label fLabel = LLS_peek();//Get donw label from the list
+    TMP_label sLabel = TMP_newlabel();
 
 	TR_exp variable = unEx(vari);
 	TR_stm condition = TR_Cjump(TR_le, variable, unEx(highv), tLabel, fLabel );
@@ -327,17 +330,17 @@ TL_exp TL_forExp(TL_exp vari, TL_exp lowv, TL_exp highv, TL_exp body){
 							 TR_Seq(TR_Label(tLabel),
 								 TR_Seq(unNx(body),
 									 TR_Seq(TR_Move(variable, TR_Binop(TR_plus, variable, TR_Const(1))),
-										 TR_Seq(TR_Jump(TR_Name(sLabel),TMP_Labellist(sLabel,NULL)),
+										 TR_Seq(TR_Jump(TR_Name(sLabel),TMP_LabelList(sLabel,NULL)),
 											    TR_Label(fLabel)
 											   )
-								           )
-									   )
-							       )
-						       )
-					       )
-				       )
+										   )
+								       )
+								   )   
+							   )
+						   )
+					  );
 	LLS_pop();
-	return TR_Nx(statement);
+	return TL_Nx(statement);
 
 }
 TL_exp TL_whileExp(TL_exp condition, TL_exp body){
@@ -361,9 +364,9 @@ TL_exp TL_whileExp(TL_exp condition, TL_exp body){
 							)
 						)
 					)
-		     	)
+		     	);
 	LLS_pop();
-	return TR_NX(statement);
+	return TL_Nx(statement);
 	
 }
 
@@ -375,10 +378,10 @@ void TL_genLoopDoneLabel(){
 TL_exp TL_breakExp();
 TL_exp TL_ifExp(TL_exp condition, TL_exp thenc, TL_exp elsec){
 
-	struct Cx conditionx = unCx(cond);
-	TMP_Label tLabel = TMP_newlabel();
-	TMP_Label fLabel = TMP_newlabel();
-	TMP_Label jLabel = TMP_newlabel();
+	struct Cx conditionx = unCx(condition);
+	TMP_label tLabel = TMP_newlabel();
+	TMP_label fLabel = TMP_newlabel();
+	TMP_label jLabel = TMP_newlabel();
 
 	doPatch(conditionx.trues, tLabel);
 	doPatch(conditionx.falses, fLabel);
@@ -390,19 +393,19 @@ TL_exp TL_ifExp(TL_exp condition, TL_exp thenc, TL_exp elsec){
 						TR_Seq(TR_Label(tLabel),
 							TR_Seq(unNx(thenc),
 								   TR_Label(fLabel)
-							)
+							      )
 							)
 					)
-			   )
+			   );
 	}
 	/*if-then-else*/
-	/*if this statement doesn't have return value'*/
+	/*if this statement doesn't have return value*/
 	else{
 		if(thenc->kind == TL_nx && elsec->kind == TL_nx){
 			return TL_Nx(TR_Seq(conditionx.stm,
 							TR_Seq(TR_Label(tLabel),
 								TR_Seq(unNx(thenc),
-									TR_Seq(TR_Jump(TR_Name(jLabel),TMP_LabelList(join,NULL)),
+									TR_Seq(TR_Jump(TR_Name(jLabel),TMP_LabelList(jLabel,NULL)),
 										TR_Seq(TR_Label(fLabel),
 											TR_Seq(unNx(elsec),
 												   TR_Label(jLabel)
@@ -412,17 +415,17 @@ TL_exp TL_ifExp(TL_exp condition, TL_exp thenc, TL_exp elsec){
 									  )
 								  )
 						       )
-					    )
+					    );
 		}
 		/*if this statement has return value*/
 		else{
 			TMP_temp rLabel = TMP_newtemp();
-			return TL_Ex(TR_Eseq(conditionx_cond.stm,
+			return TL_Ex(TR_Eseq(conditionx.stm,
 							TR_Eseq(TR_Label(tLabel),
-								TR_Eseq(TR_Move(TR_Temp(r),unEx(thenc)),
+								TR_Eseq(TR_Move(TR_Temp(rLabel),unEx(thenc)),
 									TR_Eseq(TR_Jump(TR_Name(jLabel),TMP_LabelList(jLabel, NULL)),
 										TR_Eseq(TR_Label(fLabel),
-											TR_Eseq(TR_Move(TR_Temp(r),unEx(elsec)),
+											TR_Eseq(TR_Move(TR_Temp(rLabel),unEx(elsec)),
 												TR_Eseq(TR_Label(jLabel),TR_Temp(rLabel))  
 											   )
 										   )
@@ -430,7 +433,7 @@ TL_exp TL_ifExp(TL_exp condition, TL_exp thenc, TL_exp elsec){
 								   )
 				                )
 					    )
-				   )
+				   );
 		}
 	}
 	
@@ -446,10 +449,10 @@ TL_exp TL_simpleVar(TL_access translate_acc, TL_level translate_level){
 			expression = FRM_Exp(FRM_staticLink(),expression);
 			translate_level = translate_level->parent;
 		}
-		expression = FRM_Exp(translate_acc, expression);
+		expression = FRM_Exp(translate_acc->access, expression);
 	}
 	else{
-		expression = FRM_Exp(translate_acc, TR_Temp(FRM_FP()));
+		expression = FRM_Exp(translate_acc->access, TR_Temp(FRM_FP()));
 	}
 	return TL_Ex(expression);
 }
@@ -457,7 +460,7 @@ TL_exp TL_simpleVar(TL_access translate_acc, TL_level translate_level){
 /*TL_arrayVar return IR representation of an element's address in an array
  *var stores array's head element's position */
 TL_exp TL_arrayVar(TL_exp var, TL_exp offset_exp){
-	return TL_Ex(TR_Mem(TR_Binop(TR_plus, unEx(base),TR_Binop(TR_mul, unEx(offset),TR_Const(FRM_wordSize)))));	
+	return TL_Ex(TR_Mem(TR_Binop(TR_plus, unEx(var),TR_Binop(TR_mul, unEx(offset_exp),TR_Const(FRM_wordSize)))));	
 }
 
 TL_exp TL_intExp(int int_variable){
@@ -550,27 +553,27 @@ TL_exp TL_logicExp(AST_oper opera, TL_exp leftExp, TL_exp rightExp, bool strComp
 /*Init array */
 /*here I change Ex to Nx*/
 TL_exp TL_arrayExp(TL_exp sizeOfArray, TL_exp initVal){
-	return TL_Nx(FRM_externalCall("initArray", TR_ExpList(unEx(sizeOfArray), TR_ExpList(unEx(initVal), NULL))));
+	return TL_Ex(FRM_externalCall("initArray", TR_ExpList(unEx(sizeOfArray), TR_ExpList(unEx(initVal), NULL))));
 }
 
-TL_exp TL_seqExp(TL_exp* array0fStm, int sizeOfArray){
+TL_exp TL_seqExp(TL_exp* arrayOfStm, int sizeOfArray){
 	TR_exp* p;
 	TR_exp head;
 
 	int cnt = 0;
 	int last = sizeOfArray - 1;
 	while(cnt < sizeOfArray){
-		if(i != last){
-			*p = TR_Eseq(unNx(arrayOfStm[i]), NULL);
+		if(cnt != last){
+			*p = TR_Eseq(unNx(arrayOfStm[cnt]), NULL);
 			p = &((*p)->u.ESEQ.exp);
 		}
 		else{
-			*p = unEx(arrayOfStm[i]);
+			*p = unEx(arrayOfStm[cnt]);
 		}
-		if(i == 0){
+		if(cnt == 0){
 			head = *p;
 		}
-		i++;
+		cnt++;
 	}
 	return TL_Ex(head);
 }
@@ -601,4 +604,3 @@ FRM_fragList TL_getResult(void){
 	return FRM_getFragList();
 }
 
-#endif

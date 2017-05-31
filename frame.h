@@ -8,6 +8,9 @@
 #ifndef _FRAME_H_
 #define _FRAME_H_
 
+#include "tree.h"
+#include "temp.h"
+
 typedef struct FRM_frame_ *FRM_frame;
 typedef struct FRM_access_ *FRM_access;
 
@@ -74,6 +77,7 @@ FRM_fragList FRM_FragList(FRM_frag key, FRM_fragList tail);
 static FRM_frag* extendFragList();
 void FRM_String(TMP_label strLabel, string str);
 void FRM_Proc(TR_stm funBody, FRM_frame frame);
+FRM_fragList FRM_getFragList();
 
 
 

@@ -278,6 +278,11 @@ void FRM_Proc(TR_stm funBody, FRM_frame frame){
 	*curFrag = FRM_ProcFrag(funBody, frame);
 }
 
+FRM_fragList FRM_getFragList(){
+	return fragList_head;
+}
+
+
 /*produce IR tree(TR_Mem) to access target address*/
 TR_exp FRM_Exp(FRM_access acc, TR_exp frmPtr){
 	/*variable is in frame*/
