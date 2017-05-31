@@ -6,14 +6,14 @@
 **********************************************************************************/
 
 #ifndef _TREE_H_
-#define _TREE_H
+#define _TREE_H_
 
-//#include "tree.h"_
+#include "temp.h"
 
 typedef struct TR_stm_ *TR_stm;
 typedef struct TR_exp_ *TR_exp;
-typedef struct TR_expList_ *TR_expList;
-struct TR_expList_ {TR_exp head; TR_expList tail;};
+struct TR_expList_ {TR_exp head; struct TR_expList_*  tail;};
+typedef struct TR_expList_* TR_expList;
 typedef struct TR_stmList_ *TR_stmList;
 struct TR_stmList_ {TR_stm head; TR_stmList tail;};
 

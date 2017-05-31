@@ -13,7 +13,7 @@
 #include "printtree.h"
 
 /* local function prototype */
-static void PT_tree_exp(FILE *out, T_exp expression, int d);
+static void PT_tree_exp(FILE *out, TR_exp expression, int d);
 
 static void indent(FILE *out, int de) {
  int index;
@@ -43,7 +43,7 @@ static void PT_stm(FILE *outFile, TR_stm statement, int de)
     fprintf(outFile, ")");
     break;
   case TR_CJUMP:
-    indent(outFile,de); fprintf(outFile, "CJUMP(%s,\n", rel_operaa[statement->u.CJUMP.op]);
+    indent(outFile,de); fprintf(outFile, "CJUMP(%s,\n", rel_opera[statement->u.CJUMP.op]);
     PT_tree_exp(outFile, statement->u.CJUMP.left,de+1); fprintf(outFile, ",\n"); 
     PT_tree_exp(outFile, statement->u.CJUMP.right,de+1); fprintf(outFile, ",\n");
     indent(outFile,de+1); fprintf(outFile, "%s,", SB_name(statement->u.CJUMP.true));
