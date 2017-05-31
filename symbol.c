@@ -8,7 +8,7 @@ struct SB_symbol_ {string name; SB_symbol next;};
 
 static SB_symbol mksymbol(string name, SB_symbol next)
 {
-	SB_symbol s=checked_malloc(sizeof(*s));
+	SB_symbol s=check_malloc(sizeof(*s));
 	s->name=name; s->next=next;
 	return s;
 }
@@ -53,15 +53,15 @@ string SB_name(SB_symbol sym)
 
 SB_table SB_empty(void) 
 { 
- return TAB_empty();
+ return TB_create();
 }
 
 void SB_enter(SB_table t, SB_symbol sym, void *value) {
-  TAB_enter(t,sym,value);
+  TB_push(t,sym,value);
 }
 
 void *SB_look(SB_table t, SB_symbol sym) {
-  return TAB_look(t,sym);
+  return TB_look(t,sym);
 }
 
 static struct SB_symbol_ marksym = {"<mark>",0};
@@ -72,11 +72,11 @@ void SB_beginScope(SB_table t)
 
 void SB_endScope(SB_table t)
 {SB_symbol s;
-  do s=TAB_pop(t);
+  do s=TB_pop(t);
   while (s != &marksym);
 }
-
+/*
 void SB_dump(SB_table t, void (*show)(SB_symbol sym, void *binding)) {
   TAB_dump(t, (void (*)(void *, void *)) show);
 }
-
+*/
