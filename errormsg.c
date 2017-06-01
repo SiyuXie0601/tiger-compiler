@@ -24,7 +24,7 @@ extern FILE *yyin;
 typedef struct intList {int i; struct intList *rest;} *IntList;
 
 static IntList intList(int i, IntList rest) 
-{IntList l= checked_malloc(sizeof *l);
+{IntList l= check_malloc(sizeof *l);
  l->i=i; l->rest=rest;
  return l;
 }

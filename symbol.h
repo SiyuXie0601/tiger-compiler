@@ -17,7 +17,7 @@ string SB_name(SB_symbol);
 
 /* SB_table is a mapping from SB_symbol->any, where "any" is represented
  *     here by void*  */
-typedef struct TAB_table_ *SB_table;
+typedef struct TB_table_ *SB_table;
 
 /* Make a new table */
 SB_table SB_empty(void);

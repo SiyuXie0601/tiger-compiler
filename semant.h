@@ -7,9 +7,11 @@
 
 #include "frame.h"
 #include "mipsframe.h"
+#include "translate.h"
+#include "types.h"
+#include "util.h"
 
-bool hasError = FALSE;
-
+bool hasError;
 /*
  * the main interface of this module
  * if any error has occured, the external hasError will be set TRUE

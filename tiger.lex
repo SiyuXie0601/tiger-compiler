@@ -26,7 +26,7 @@ char *str = NULL;
 int len, mlen;
 
 void str_init() {
-	str = checked_malloc(plen);
+	str = check_malloc(plen);
 	mlen = plen;
 	str[0] = '\0';
 	len = 0;

@@ -38,6 +38,6 @@ void *TB_look(TB_table t, void *key);
 /*
  * pop the most recent binding and return its key.
  */
-void TB_pop(TB_table t);
+void *TB_pop(TB_table t);
 
 #endif

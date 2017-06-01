@@ -17,6 +17,8 @@
 #include "translate.h"
 #include "semant.h"
 
+bool hasError = FALSE;
+
 static struct exp_tp *empty_exp_tp; 
 static TP_tp actual_tp(TP_tp tp);
 static char string_operator[][4] = {
@@ -61,7 +63,7 @@ static void Loop_var_stack_pop(){
 	Stack_pop(&loop_var_stack);
 }
 static bool Loop_var_stack_look(SB_symbol sb){
-	return Stack_check(loop_var_stack, sb, comparePointer);
+	return Stack_check(&loop_var_stack, sb, comparePointer);
 }
 static bool comparePointer(void *m, void *n){
 	return m == n ? TRUE : FALSE;
@@ -83,7 +85,7 @@ static void Type_sym_stack_pop(){
 	Stack_pop(&type_sym_stack);
 }
 static bool Type_sym_stack_look(SB_symbol sb){
-	return Stack_check(type_sym_stack, sb, comparePointer);
+	return Stack_check(&type_sym_stack, sb, comparePointer);
 }
 static void Type_sym_stack_empty(){
 	Stack_empty(&type_sym_stack);
@@ -112,7 +114,7 @@ static char string_sm_error_level[][15] = {
 	"[error] ",
 	"[error] "
 };
-static str_length_sm_error_level[] = {
+static int str_length_sm_error_level[] = {
 	10,
 	8,
 	8,
@@ -177,8 +179,8 @@ void initialize(){
 FRM_fragList SM_transProgram(AST_exp exp){
 	initialize();
 
-	SB_table valueEV = EV_base_valueEV();
-	SB_table typeEV = EV_base_typeEV();
+	SB_table valueEV = EV_base_valueEv();
+	SB_table typeEV = EV_base_typeEv();
 
 	TL_level rootLevel = TL_newLevel(TL_outermost(), TMP_namedlabel("_main_"), NULL);
 	struct exp_tp result = transExp(rootLevel, valueEV, typeEV, exp);
@@ -259,15 +261,15 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 			return transVar(level, valueEV, typeEV, e->u.var);
 		case AST_intExp:
 			te = TL_intExp(e->u.intt);
-			return Exp_Tp(te, Tp_Int());
+			return Exp_Tp(te, TP_Int());
 		case AST_stringExp:
 			te = TL_stringExp(e->u.stringg);
-			return Exp_Tp(te, Tp_String());
+			return Exp_Tp(te, TP_String());
 		case AST_opExp:
 			left_exp_tp = transExp(level, valueEV, typeEV, e->u.op.left);
 			right_exp_tp = transExp(level, valueEV, typeEV, e->u.op.right);
 			left_tp = actual_tp(left_exp_tp.tp);
-			right_tp = axtual_tp(right_exp_tp.tp);
+			right_tp = actual_tp(right_exp_tp.tp);
 			oper = e->u.op.oper;
 
 			switch (oper){
@@ -280,10 +282,10 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 				case AST_timesOp:
 				case AST_divideOp:
 					if(left_tp->kind != TP_int){
-						SM_msg(SEVERE, e->pos, "Illegal operation: left side of '%s' operation is not an integer!", string_operator[oper]);
+						SM_info(SEVERE, e->pos, "Illegal operation: left side of '%s' operation is not an integer!", string_operator[oper]);
 					}
 					if(right_tp->kind != TP_int){
-						SM_msg(SEVERE, e->pos, "Illegal operation: right side of '%s' operation is not an integer!", string_operator[oper]);
+						SM_info(SEVERE, e->pos, "Illegal operation: right side of '%s' operation is not an integer!", string_operator[oper]);
 					}
 					// terminate program if given error has occured
 					SM_check_exit(SEVERE);
@@ -661,7 +663,7 @@ TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_dec d){
 						SM_info(FATAL, d->pos, "the type name '%s' has been used adjacently!", SB_name(type->name));
 					}
 					else{
-						type_sym_stack_psh(type->name);
+						Type_sym_stack_push(type->name);
 					}
 
 					SB_enter(typeEV, type->name, generateTp(type->ty));
@@ -710,5 +712,9 @@ SB_table EV_base_typeEv(){
 SB_table EV_base_valueEv(){
 	SB_table table = SB_empty();
 	return table;
+}
+
+static TP_tp actual_tp(TP_tp tp){
+	return tp;
 }
 

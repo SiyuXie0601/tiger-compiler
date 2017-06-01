@@ -15,7 +15,7 @@ TP_tp TP_Void(){
 	return &tpvoid;
 }
 TP_tp TP_Array(TP_tp tp) {
-    TP_tp ptr = checked_malloc(sizeof(*ptr));
+    TP_tp ptr = check_malloc(sizeof(*ptr));
     ptr->kind = TP_array;
     ptr->u.array = tp;
     return ptr;

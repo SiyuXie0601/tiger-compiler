@@ -4,9 +4,11 @@
 
 #include <stdio.h>
 #include "util.h"
+#include <stdlib.h>
 #include "errormsg.h"
 #include "symbol.h"
 #include "absyn.h"
+#include "semant.h"
 
 extern int yyparse(void);
 extern AST_exp absyn_root;

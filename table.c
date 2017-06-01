@@ -7,7 +7,7 @@
 #include "util.h"
 
 static binditem BindItem(void *key, void *value, binditem next, void *previtem){
-	binditem ptr = checked_malloc(sizeof(*ptr));
+	binditem ptr = check_malloc(sizeof(*ptr));
 	ptr->key = key;
 	ptr->value = value;
 	ptr->next = next;
@@ -16,7 +16,7 @@ static binditem BindItem(void *key, void *value, binditem next, void *previtem){
 }
 
 TB_table TB_create(){
-	TB_table newtable = checked_malloc(sizeof(*newtable));
+	TB_table newtable = check_malloc(sizeof(*newtable));
 	newtable->curitem = NULL;
 	for(int i = 0;i < TBSIZE;i ++){
 		newtable->table[i] = NULL;
@@ -45,7 +45,7 @@ void *TB_look(TB_table t, void *key){
 	return NULL;
 }
 
-void TB_pop(TB_table t){
+void *TB_pop(TB_table t){
 	void *k = NULL;
 	int tableidx = 0;
 	binditem item;
