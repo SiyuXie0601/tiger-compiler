@@ -367,10 +367,20 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 				
 				// generate IR for each sub exp
 				for(expList = e->u.seq, i = 0;expList != NULL; expList = expList->tail){
-					
+					exp = expList->head;
+					if (exp != NULL) {
+						exp_tp = transExp(level, valueEV, typeEV, exp);
+
+						te_list[i] = exp_tp.exp;
+
+						i++;
+					}
 				}
+				exp_tp = Exp_Tp(TL_seqExp(te_list, i), exp_tp.tp);
+				check_free(te_list);
 
 			}
+			return exp_tp;
 		case AST_assignExp:
 			/* translate the assignee.
 			 * if the var is not defined, an error would occur in transVar()

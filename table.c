@@ -27,7 +27,7 @@ TB_table TB_create(){
 void TB_push(TB_table t, void *key, void *value){
 	int tableidx = 0;
 	assert(t && key);
-	tableidx = ((unsigned) tableidx) % TBSIZE;
+	tableidx = ((unsigned) key) % TBSIZE;
 	t->table[tableidx] = BindItem(key, value, t->table[tableidx], t->curitem);
 	t->curitem = key;
 }
@@ -36,7 +36,7 @@ void *TB_look(TB_table t, void *key){
 	int tableidx = 0;
 	assert(t && key);
 	binditem item;
-	tableidx = ((unsigned) tableidx) % TBSIZE;
+	tableidx = ((unsigned)key) % TBSIZE;
 	for(item = t->table[tableidx]; item; item = item->next){
 		if(item->key == key){
 			return item->value;

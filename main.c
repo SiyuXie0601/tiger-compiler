@@ -9,7 +9,7 @@
 #include "symbol.h"
 #include "absyn.h"
 #include "semant.h"
-
+#define PRINT
 extern int yyparse(void);
 extern AST_exp absyn_root;
 

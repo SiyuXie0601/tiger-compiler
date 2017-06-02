@@ -135,8 +135,12 @@ TL_level TL_outermost(void){
 /*Related to function.
  *Will be implemented in second version.
  */
-TL_level TL_newLevel(TL_level parent, TMP_label name, UN_boolList formals){
-	
+TL_level TL_newLevel(TL_level parentb, TMP_label nameb, UN_boolList formalsb){
+	TL_level levelb = (TL_level)check_malloc(sizeof(struct TL_level_));
+	levelb->parent = parentb;
+	levelb->frame = FRM_newFrame(nameb, UN_BoolList(TRUE, formalsb));//Add a new formal used as static link
+	levelb->depth = parentb->depth + 1;
+	return levelb;
 }
 TL_accessList TL_formals(TL_level levelb){
 	FRM_accessList frmAccList = FRM_formals(levelb->frame);
