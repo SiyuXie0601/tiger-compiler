@@ -71,14 +71,14 @@ AST_exp AST_StringExp(AST_pos pos, string s)
 
 AST_exp AST_OpExp(AST_pos pos, AST_oper oper, AST_exp left, AST_exp right)
 {
-	
-	AST_exp p = check_malloc(sizeof(*p));
-	p->kind = AST_opExp;
-	p->pos = pos;
-	p->u.op.oper = oper;
-	p->u.op.left = left;
-	p->u.op.right = right;
-	return p;
+  
+  AST_exp p = check_malloc(sizeof(*p));
+  p->kind = AST_opExp;
+  p->pos = pos;
+  p->u.op.oper = oper;
+  p->u.op.left = left;
+  p->u.op.right = right;
+  return p;
 
 }
 
@@ -164,7 +164,7 @@ AST_dec AST_VarDec(AST_pos pos, SB_symbol var, SB_symbol typ, AST_exp init)
  p->u.var.init=init;
  p->u.var.escape=TRUE;
 // removed Constant table entry form here
-	 
+   
  return p;
 }
 
@@ -499,7 +499,7 @@ void print_WhileExp(AST_exp exp, int indent) {
 
 void print_ForExp(AST_exp exp, int indent) {
   print_indent(indent);
-  printf("For: %d", exp->u.forr.escape);
+  printf("For: ", exp->u.forr.escape);
 
   print_indent(indent);
   printf(" escape = %d", exp->u.forr.escape);
@@ -508,16 +508,17 @@ void print_ForExp(AST_exp exp, int indent) {
   printf(" var = ");
   print_SB_symbol(exp->u.forr.var);
   
-  printf(" low = "); 
+
   print_indent(indent);
+  printf(" low = ");   
   print_absyn_exp(exp->u.forr.lo, indent + 1);
   
-  printf(" high = "); 
   print_indent(indent);
+  printf(" high = "); 
   print_absyn_exp(exp->u.forr.hi, indent + 1);
   
-  printf(" body "); 
   print_indent(indent);
+  printf(" body "); 
   print_absyn_exp(exp->u.forr.body, indent + 1);
   
   print_end();

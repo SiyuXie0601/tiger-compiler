@@ -5,7 +5,7 @@ var str : string := "hello world"
 var i : int :=0
 type intArray = array of int
 
-/*var row := intArray [ c ] of 0*/
+var row := intArray [ c ] of 0
  
 in
 	c := i + 1;
