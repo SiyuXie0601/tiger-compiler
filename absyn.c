@@ -327,13 +327,13 @@ void print_absyn_oper(AST_oper oper) {
     printf("*");
     break;
   case AST_divideOp:
-    printf("*");
+    printf("/");
     break;
   case AST_eqOp:
     printf("=");
     break; 
   case AST_neqOp:
-    printf("-");
+    printf("<>");
     break;
   case AST_ltOp:
     printf("<");
