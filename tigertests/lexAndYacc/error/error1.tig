@@ -1,1 +1,1 @@
-var row := intArray [ c ] /*error lack "of 1"*/ 
+var row := intArray [ c ] /*error lack "of 1" (uncompleted syntax)*/ 

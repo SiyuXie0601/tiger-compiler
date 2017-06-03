@@ -1,11 +1,7 @@
 let
-var c : int :== 11      /*error :==*/
+var c : int :== 11      /*error invalid token ":=="*/
 str : string := "hello world"
 var i : int :=0
-type intArray ====== array of int
-
-var row := intArray [ c ] /*error lack "of 1"*/ 
- 
 in
 	c := i + 1;
 	while c = 1 do c := c + 1;

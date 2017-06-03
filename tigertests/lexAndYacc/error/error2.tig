@@ -1,5 +1,5 @@
 let
-    t == 1
+    t == 1 /*error: "==" (undefined token)*/
 in
 	c := i + 1;
 	while c = 1 do c := c + 1;

@@ -1,0 +1,1 @@
+str : string := "hello world" /*error: missing "var"*/
