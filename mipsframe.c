@@ -357,10 +357,9 @@ FRM_frame FRM_newFrame(TMP_label frmName, UN_boolList argFormals){
 		}
 	}
 
-	if(accessList != NULL){
+	if (accessList != NULL) {
 		accessList->tail == NULL;
 	}
-
 	frm->formals = accessList_head;
 	return frm;
 

@@ -195,7 +195,7 @@ static patchList PatchList(TMP_label *label, patchList list){
 
 static void doPatch(patchList plist, TMP_label label){
 	while(plist != NULL){
-		if(*plist->labelOnTree != NULL)
+		if(*plist->labelOnTree == NULL)
 			*plist->labelOnTree = label;
 		plist = plist->next;
 	}
@@ -310,6 +310,7 @@ static struct Cx unCx(TL_exp exp){
 			 conditionx.stm = exp->u.nx;
 			 break;
 	 }
+	 return conditionx;
 }
 
 //Tranlation for expressions
@@ -563,7 +564,7 @@ TL_exp TL_arrayExp(TL_exp sizeOfArray, TL_exp initVal){
 }
 
 TL_exp TL_seqExp(TL_exp* arrayOfStm, int sizeOfArray){
-	TR_exp* p;
+	TR_exp* p = check_malloc(sizeof(TR_exp));
 	TR_exp head;
 
 	int cnt = 0;
@@ -571,13 +572,13 @@ TL_exp TL_seqExp(TL_exp* arrayOfStm, int sizeOfArray){
 	while(cnt < sizeOfArray){
 		if(cnt != last){
 			*p = TR_Eseq(unNx(arrayOfStm[cnt]), NULL);
+			if (cnt == 0) {
+				head = *p;
+			}
 			p = &((*p)->u.ESEQ.exp);
 		}
 		else{
 			*p = unEx(arrayOfStm[cnt]);
-		}
-		if(cnt == 0){
-			head = *p;
 		}
 		cnt++;
 	}
