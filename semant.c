@@ -653,6 +653,9 @@ TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_dec d){
 					SM_info(ERROR, d->pos, "The initializer of variable '%s' is incompatible with the declared type!", SB_name(sym));
 				}	
 			}
+			else {
+				decTp = exp.tp;
+			}
 			
 			// enter the var into the env
 			access = TL_allocLocal(level, TRUE);
