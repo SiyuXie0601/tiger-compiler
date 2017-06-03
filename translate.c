@@ -579,6 +579,9 @@ TL_exp TL_seqExp(TL_exp* arrayOfStm, int sizeOfArray){
 		}
 		else{
 			*p = unEx(arrayOfStm[cnt]);
+			if (cnt == 0) {
+				head = *p;
+			}
 		}
 		cnt++;
 	}
