@@ -39,6 +39,7 @@ int main(int argc, char **argv){
 	#endif
 
 	SM_transProgram(exp);
+	system("pause");
 	return 0;
 }
 
