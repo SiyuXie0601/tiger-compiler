@@ -1,0 +1,18 @@
+let
+/*var a : int := -8*/
+var c : int := 11
+var str : string := "hello world"
+var i : int :=0
+type intArray = array of int
+
+var row := intArray [ c ] of 0
+ 
+in
+	c := i + 3;
+	while c = 1 do c := c + 1;
+    for i:= 0 to 10 do 
+		c := c + 1;
+	if i = 0 | i = 1 
+	then i := 1
+	else i := -1
+end

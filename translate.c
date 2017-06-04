@@ -19,7 +19,8 @@
 
 
 
-/* Stack Structure START */
+/* Stack Structure START 
+ * Instances of Stack are used by semant.c to store loop variant and type symbol*/
 
 /* Push */
 void Stack_push(stack_item *stkList, void *key){
