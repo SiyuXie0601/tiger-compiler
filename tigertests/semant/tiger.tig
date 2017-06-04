@@ -9,10 +9,19 @@ var row := intArray [ c ] of 0
  
 in
 	c := i + 3;
-	while c = 1 do c := c + 1;
+	while c = 1 do		( 
+		    row[1] := c + 1;
+			row[i] := i + c
+			);
     for i:= 0 to 10 do 
-		c := c + 1;
+			( 
+		    row[1] := c + 1;
+			row[i] := i + c
+			);
 	if i = 0 | i = 1 
-	then i := 1
+	then	( 
+		    row[1] := c + 1;
+			row[i] := i + c
+			)
 	else i := -1
 end
