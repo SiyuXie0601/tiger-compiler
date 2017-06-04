@@ -58,6 +58,7 @@ void Stack_empty(stack_item *stkList){
 		head = head->next;
 		check_free(empty);
 	}
+	*stkList = head;
 }
 
 /*Check whether the given key exists in the stack.
