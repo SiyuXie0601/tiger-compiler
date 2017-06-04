@@ -5,3 +5,13 @@ ignore:
 5
 6
 7
+
+not pass:
+
+10
+
+pass:
+8
+9
+11
+12
