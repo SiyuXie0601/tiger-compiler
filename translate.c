@@ -19,7 +19,8 @@
 
 
 
-/* Stack Structure START */
+/* Stack Structure START 
+ * Instances of Stack are used by semant.c to store loop variant and type symbol*/
 
 /* Push */
 void Stack_push(stack_item *stkList, void *key){
@@ -58,6 +59,7 @@ void Stack_empty(stack_item *stkList){
 		head = head->next;
 		check_free(empty);
 	}
+	*stkList = head;
 }
 
 /*Check whether the given key exists in the stack.
@@ -579,6 +581,9 @@ TL_exp TL_seqExp(TL_exp* arrayOfStm, int sizeOfArray){
 		}
 		else{
 			*p = unEx(arrayOfStm[cnt]);
+			if (cnt == 0) {
+				head = *p;
+			}
 		}
 		cnt++;
 	}

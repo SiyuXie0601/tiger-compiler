@@ -301,11 +301,11 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 				case AST_leOp:
 				case AST_gtOp:
 				case AST_geOp:
-					if(left_tp->kind != TP_int && left_tp->kind == TP_string){
+					if(left_tp->kind != TP_int && left_tp->kind != TP_string){
 						SM_info(SEVERE, e->pos, 
 								"Illegal operaion: the left side of '%s' operation is not an integer or string!", string_operator[oper]);
 					}
-					if(right_tp->kind != TP_int && right_tp->kind == TP_string){
+					if(right_tp->kind != TP_int && right_tp->kind != TP_string){
 						SM_info(SEVERE, e->pos, 
 								"Illegal operaion: the left side of '%s' operation is not an integer or string!", string_operator[oper]);
 					}
