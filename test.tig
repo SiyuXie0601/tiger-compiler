@@ -6,13 +6,16 @@ var i : int :=0
 type intArray = array of int
 
 var row := intArray [ c ] of 0
- 
+function g(a:int):int = a
 in
-	c := i + 1;
-	while c = 1 do c := c + 1;
-    for i:= 0 to 10 do 
-		(c := c+1; row[i] := c);
+	b := a + 3;
+	while a <> 1 do a := a + 1;
+    for i:=10 to 0 do 
+		(i := i - 1;
+		row[i] := i);
 	if i = 0 | i = 1 
 	then i := 1
 	else i := -1
+
+
 end

@@ -77,8 +77,11 @@
      IN = 293,
      END = 294,
      OF = 295,
-     VAR = 296,
-     TYPE = 297
+     BREAK = 296,
+     NIL = 297,
+     FUNCTION = 298,
+     VAR = 299,
+     TYPE = 300
    };
 #endif
 /* Tokens.  */
@@ -120,8 +123,11 @@
 #define IN 293
 #define END 294
 #define OF 295
-#define VAR 296
-#define TYPE 297
+#define BREAK 296
+#define NIL 297
+#define FUNCTION 298
+#define VAR 299
+#define TYPE 300
 
 
 
@@ -140,10 +146,13 @@ typedef union YYSTYPE
   AST_ty type_p;
   AST_namety name_type;
   AST_dec decl;
+  AST_fieldList flist;
+  AST_fundecList fdeclist;
   AST_decList dec_List;
+  AST_efieldList e_list; 
 }
 /* Line 1529 of yacc.c.  */
-#line 147 "y.tab.h"
+#line 156 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

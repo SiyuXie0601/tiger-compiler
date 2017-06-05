@@ -4,10 +4,10 @@
  */
 
 #include "util.h"
+#include "symbol.h" /* symbol table data structures */
 #include "absyn.h"  /* abstract syntax data structures */
 #include "stdio.h"
 #include "constants.h"
-
 
 
 
@@ -69,6 +69,15 @@ AST_exp AST_StringExp(AST_pos pos, string s)
  return p;
 }
 
+AST_exp AST_CallExp(AST_pos pos, SB_symbol func, AST_expList args)
+{AST_exp p = check_malloc(sizeof(*p));
+ p->kind=AST_callExp;
+ p->pos=pos;
+ p->u.call.func=func;
+ p->u.call.args=args;
+ return p;
+}
+
 AST_exp AST_OpExp(AST_pos pos, AST_oper oper, AST_exp left, AST_exp right)
 {
   
@@ -83,6 +92,14 @@ AST_exp AST_OpExp(AST_pos pos, AST_oper oper, AST_exp left, AST_exp right)
 }
 
 
+AST_exp AST_RecordExp(AST_pos pos, SB_symbol typ, AST_efieldList fields)
+{AST_exp p = check_malloc(sizeof(*p));
+ p->kind=AST_recordExp;
+ p->pos=pos;
+ p->u.record.typ=typ;
+ p->u.record.fields=fields;
+ return p;
+}
 
 AST_exp AST_SeqExp(AST_pos pos, AST_expList seq)
 {AST_exp p = check_malloc(sizeof(*p));
@@ -133,7 +150,12 @@ AST_exp AST_ForExp(AST_pos pos, SB_symbol var, AST_exp lo, AST_exp hi, AST_exp b
  return p;
 }
 
-
+AST_exp AST_BreakExp(AST_pos pos)
+{AST_exp p = check_malloc(sizeof(*p));
+ p->kind=AST_breakExp;
+ p->pos=pos;
+ return p;
+}
 
 AST_exp AST_LetExp(AST_pos pos, AST_decList decs, AST_exp body)
 {AST_exp p = check_malloc(sizeof(*p));
@@ -154,6 +176,13 @@ AST_exp AST_ArrayExp(AST_pos pos, SB_symbol typ, AST_exp size, AST_exp init)
  return p;
 }
 
+AST_dec AST_FunctionDec(AST_pos pos, AST_fundecList function)
+{AST_dec p = check_malloc(sizeof(*p));
+ p->kind=AST_functionDec;
+ p->pos=pos;
+ p->u.function=function;
+ return p;
+}
 
 AST_dec AST_VarDec(AST_pos pos, SB_symbol var, SB_symbol typ, AST_exp init)
 {AST_dec p = check_malloc(sizeof(*p));
@@ -176,6 +205,21 @@ AST_dec AST_TypeDec(AST_pos pos, AST_nametyList type)
  return p;
 }
 
+AST_ty AST_NameTy(AST_pos pos, SB_symbol name)
+{AST_ty p = check_malloc(sizeof(*p));
+ p->kind=AST_nameTy;
+ p->pos=pos;
+ p->u.name=name;
+ return p;
+}
+
+AST_ty AST_RecordTy(AST_pos pos, AST_fieldList record)
+{AST_ty p = check_malloc(sizeof(*p));
+ p->kind=AST_recordTy;
+ p->pos=pos;
+ p->u.record=record;
+ return p;
+}
 
 AST_ty AST_ArrayTy(AST_pos pos, SB_symbol array)
 {AST_ty p = check_malloc(sizeof(*p));
@@ -185,6 +229,21 @@ AST_ty AST_ArrayTy(AST_pos pos, SB_symbol array)
  return p;
 }
 
+AST_field AST_Field(AST_pos pos, SB_symbol name, SB_symbol typ)
+{AST_field p = check_malloc(sizeof(*p));
+ p->pos=pos;
+ p->name=name;
+ p->typ=typ;
+ p->escape=TRUE;
+ return p;
+}
+
+AST_fieldList AST_FieldList(AST_field head, AST_fieldList tail)
+{AST_fieldList p = check_malloc(sizeof(*p));
+ p->head=head;
+ p->tail=tail;
+ return p;
+}
 
 AST_expList AST_ExpList(AST_exp head, AST_expList tail)
 {AST_expList p = check_malloc(sizeof(*p));
@@ -193,7 +252,23 @@ AST_expList AST_ExpList(AST_exp head, AST_expList tail)
  return p;
 }
 
+AST_fundec AST_Fundec(AST_pos pos, SB_symbol name, AST_fieldList params, SB_symbol result,
+      AST_exp body)
+{AST_fundec p = check_malloc(sizeof(*p));
+ p->pos=pos;
+ p->name=name;
+ p->params=params;
+ p->result=result;
+ p->body=body;
+ return p;
+}
 
+AST_fundecList AST_FundecList(AST_fundec head, AST_fundecList tail)
+{AST_fundecList p = check_malloc(sizeof(*p));
+ p->head=head;
+ p->tail=tail;
+ return p;
+}
 
 AST_decList AST_DecList(AST_dec head, AST_decList tail)
 {AST_decList p = check_malloc(sizeof(*p));
@@ -216,7 +291,19 @@ AST_nametyList AST_NametyList(AST_namety head, AST_nametyList tail)
  return p;
 }
 
+AST_efield AST_Efield(SB_symbol name, AST_exp exp)
+{AST_efield p = check_malloc(sizeof(*p));
+ p->name=name;
+ p->exp=exp;
+ return p;
+}
 
+AST_efieldList AST_EfieldList(AST_efield head, AST_efieldList tail)
+{AST_efieldList p = check_malloc(sizeof(*p));
+ p->head=head;
+ p->tail=tail;
+ return p;
+}
 
 void print_SB_symbol(SB_symbol s) {
   if(s == NULL) 
@@ -247,6 +334,9 @@ void print_absyn_exp(AST_exp exp, int indent) {
   case AST_opExp:
     print_OpExp(exp, indent); 
     break;
+  case AST_recordExp:
+    print_RecordExp(exp, indent); 
+    break;
   case AST_seqExp:
     print_SeqExp(exp, indent); 
     break;
@@ -261,6 +351,9 @@ void print_absyn_exp(AST_exp exp, int indent) {
     break;
   case AST_forExp:
     print_ForExp(exp, indent); 
+    break;
+  case AST_breakExp:
+    print_BreakExp(exp, indent); 
     break;
   case AST_letExp:
     print_LetExp(exp, indent); 
@@ -279,6 +372,9 @@ void print_absyn_var(AST_var var, int indent) {
   case AST_simpleVar:
     print_SimpleVar(var, indent);
     break;
+  case AST_fieldVar:
+    print_FieldVar(var, indent);
+    break;
   case AST_subscriptVar:
     print_SubscriptVar(var, indent);
     break;
@@ -289,7 +385,10 @@ void print_absyn_var(AST_var var, int indent) {
 
 void print_absyn_dec(AST_dec dec, int indent) {
   if(dec == 0) return; 
-  switch (dec->kind) { 
+  switch (dec->kind) {
+  case AST_functionDec:
+    print_FunctionDec(dec, indent); 
+    break; 
   case AST_varDec:
     print_VarDec(dec, indent);
     break; 
@@ -306,6 +405,9 @@ void print_absyn_ty(AST_ty ty, int indent) {
   switch(ty->kind) {
   case AST_nameTy:
     print_NameTy(ty, indent);
+    break; 
+  case AST_recordTy:
+    print_RecordTy(ty, indent);
     break; 
   case AST_arrayTy:
     print_ArrayTy(ty, indent);
@@ -358,6 +460,21 @@ void print_SimpleVar(AST_var var, int indent){
   
   printf("SimpleVar: "); 
   print_SB_symbol(var->u.simple);
+  print_end(); 
+}
+
+void print_FieldVar(AST_var var, int indent) {
+  print_indent(indent);
+  printf("FieldVar: ");
+
+  print_indent(indent);
+  printf(" sym = ");
+  print_SB_symbol(var->u.field.sym);
+
+  print_indent(indent);
+  printf(" var = ");
+  print_absyn_var(var->u.field.var, indent + 1);
+
   print_end(); 
 }
 
@@ -437,6 +554,20 @@ void print_OpExp(AST_exp exp, int indent) {
   print_end(); 
 }
 
+void print_RecordExp(AST_exp exp, int indent) {
+  print_indent(indent);
+  printf("RecordExp: ");
+
+  print_indent(indent);
+  printf(" typ =  ");
+  print_SB_symbol(exp->u.record.typ);
+  
+  print_indent(indent);
+  printf(" fields = ");
+  print_EfieldList(exp->u.record.fields, indent + 1);
+  
+  print_end(); 
+}
 
 void print_SeqExp(AST_exp exp, int indent) {
   print_indent(indent);
@@ -499,7 +630,7 @@ void print_WhileExp(AST_exp exp, int indent) {
 
 void print_ForExp(AST_exp exp, int indent) {
   print_indent(indent);
-  printf("For: ", exp->u.forr.escape);
+  printf("For: %d", exp->u.forr.escape);
 
   print_indent(indent);
   printf(" escape = %d", exp->u.forr.escape);
@@ -508,7 +639,6 @@ void print_ForExp(AST_exp exp, int indent) {
   printf(" var = ");
   print_SB_symbol(exp->u.forr.var);
   
-
   print_indent(indent);
   printf(" low = ");   
   print_absyn_exp(exp->u.forr.lo, indent + 1);
@@ -520,6 +650,14 @@ void print_ForExp(AST_exp exp, int indent) {
   print_indent(indent);
   printf(" body "); 
   print_absyn_exp(exp->u.forr.body, indent + 1);
+  
+  print_end();
+}
+
+void print_BreakExp(AST_exp exp, int indent) {
+  print_indent(indent);
+
+  printf("Break: ");
   
   print_end();
 }
@@ -554,6 +692,15 @@ void print_ArrayExp(AST_exp exp, int indent) {
   print_indent(indent);
   printf(" init = ");
   print_absyn_exp(exp->u.array.init, indent + 1); 
+
+  print_end();
+}
+
+void print_FunctionDec(AST_dec dec, int indent) {
+  print_indent(indent);
+
+  printf("FunctionDec: ");
+  print_FundecList(dec->u.function, indent + 1);
 
   print_end();
 }
@@ -597,6 +744,14 @@ void print_NameTy(AST_ty ty, int indent) {
   print_end();
 }
 
+void print_RecordTy(AST_ty ty, int indent) {
+  print_indent(indent);
+
+  printf("RecordTy: ");
+  print_FieldList(ty->u.record, indent + 1); 
+
+  print_end();
+}
 
 void print_ArrayTy(AST_ty ty, int indent) {
   print_indent(indent);
@@ -608,7 +763,47 @@ void print_ArrayTy(AST_ty ty, int indent) {
 }
 
 
+void print_Field(AST_field field, int indent) {
+  print_indent(indent);
 
+  printf("Field: ");
+
+  print_indent(indent);
+  printf(" escape = %d ", field->escape);
+
+  print_indent(indent);
+  printf(" name = ");
+  print_SB_symbol(field->name);
+
+  print_indent(indent);
+  printf(" type = ");
+  print_SB_symbol(field->typ);
+  
+  print_end();
+}
+void print_Fundec(AST_fundec fundec, int indent) {
+  print_indent(indent);
+
+  printf("Fundec: ");
+
+  print_indent(indent);
+  printf(" result = "); 
+  print_SB_symbol(fundec->result);
+
+  print_indent(indent);
+  printf(" name = "); 
+  print_SB_symbol(fundec->name);
+
+  print_indent(indent);
+  printf(" params = "); 
+  print_FieldList(fundec->params, indent + 1);
+
+  print_indent(indent);
+  printf(" body = "); 
+  print_absyn_exp(fundec->body, indent + 1); 
+
+  print_end();
+}
 
 void print_Namety(AST_namety namety, int indent) {
   print_indent(indent);
@@ -625,7 +820,33 @@ void print_Namety(AST_namety namety, int indent) {
   print_end();
 }
 
+void print_Efield(AST_efield efield, int indent) {
+  print_indent(indent);
+  printf("Efield: ");
 
+  print_indent(indent);
+  printf(" name = ");
+  print_SB_symbol(efield->name);
+
+  print_indent(indent);
+  printf(" exp = ");
+  print_absyn_exp(efield->exp, indent + 1);
+  
+  print_end();
+}
+
+
+void print_EfieldList(AST_efieldList efieldList, int indent) {
+  if(efieldList == NULL) return; 
+  print_Efield(efieldList->head, indent);
+  print_EfieldList(efieldList->tail, indent);
+}
+
+void print_FieldList(AST_fieldList fieldList, int indent) {
+  if(fieldList == NULL) return; 
+  print_Field(fieldList->head, indent);
+  print_FieldList(fieldList->tail, indent);
+}
 
 void print_ExpList(AST_expList expList, int indent) {
   if(expList == NULL) return; 
@@ -637,6 +858,12 @@ void print_NametyList(AST_nametyList nametyList, int indent) {
   if(nametyList == NULL) return; 
   print_Namety(nametyList->head, indent);
   print_NametyList(nametyList->tail, indent); 
+}
+
+void print_FundecList(AST_fundecList fundecList, int indent) {
+  if(fundecList == NULL) return; 
+  print_Fundec(fundecList->head, indent);
+  print_FundecList(fundecList->tail, indent);
 }
 
 

@@ -1,0 +1,31 @@
+ letExp(
+  decList(
+   varDec(c,
+    int,
+    intExp(11),
+    TRUE),
+   decList(
+    varDec(str,
+     string,
+     stringExp(hello world),
+     TRUE),
+    decList(
+     varDec(i,
+      int,
+      intExp(0),
+      TRUE),
+     decList(
+      typeDec(
+       nametyList(
+        namety(intArray,
+         arrayTy(int)),
+        nametyList())),
+      decList(
+       varDec(row,
+        arrayExp(intArray,
+         varExp(
+          simpleVar(c)),
+         intExp(0)),
+        TRUE),
+       decList(
+        
