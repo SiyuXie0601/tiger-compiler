@@ -39,7 +39,7 @@ TL_level TL_outermost(void);
 TL_level TL_newLevel(TL_level parent, TMP_label name, UN_boolList formals);
 TL_accessList TL_formals(TL_level levelb);
 TL_access TL_allocLocal(TL_level level, bool escape);
-TL_level TL_getParent(TL_level parent);
+TL_level TL_getParent(TL_level lvl);
 void TL_printLevel(TL_level level);
 
 typedef struct patchList_ *patchList;
@@ -105,7 +105,7 @@ TL_exp TL_recordExp_new(int cnt);
 void TL_recordExp_app(TL_exp te, TL_exp init, bool last);
 TL_exp TL_seqExp(TL_exp* array0fStm, int sizeOfArray);
 TL_exp TL_voidExp(void);
-TL_exp TL_callExp(TL_level caller_lvl, TL_level callee_lvl, TMP_label fun_label, TL_exp* argv, int args);
+TL_exp TL_callExp(TL_level caller_level, TL_level calleePrt_level, TMP_label function_label, TL_exp* argvs, int argNum);
 void TL_procEntryExit(TL_level funLevel, TL_exp funBody, TL_accessList formals, TMP_label label);
 
 //Fragment list

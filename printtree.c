@@ -97,11 +97,12 @@ static void PT_tree_exp(FILE *outFile, TR_exp expression, int de)
     break;
   case TR_CALL:
     {TR_expList args = expression->u.CALL.args;
-     indent(outFile,de); fprintf(outFile, "CALL\n"); PT_tree_exp(outFile, expression->u.CALL.fun,de+1);
+     indent(outFile,de); 
+     fprintf(outFile, "CALL\n"); 
+     PT_tree_exp(outFile, expression->u.CALL.fun,de+1);
      for (;args; args=args->tail) {
-       fprintf(outFile, ",\n"); PT_tree_exp(outFile, args->head,de+2);
+       fprintf(outFile, "\n"); PT_tree_exp(outFile, args->head,de+2);
      }
-     fprintf(outFile, ")");
      break;
    }
   } /* end of switch */
