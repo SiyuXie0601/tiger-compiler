@@ -144,6 +144,7 @@ TL_level TL_newLevel(TL_level parentb, TMP_label nameb, UN_boolList formalsb){
 	levelb->depth = parentb->depth + 1;
 	return levelb;
 }
+/*translate FRM_accessList into TL_accessList*/
 TL_accessList TL_formals(TL_level levelb){
 	FRM_accessList frmAccList = FRM_formals(levelb->frame);
 	TL_accessList accListb = NULL;
@@ -168,8 +169,8 @@ TL_accessList TL_formals(TL_level levelb){
 	return accListHead;
 }
 
-TL_level TL_getParent(TL_level parent){
-
+TL_level TL_getParent(TL_level lvl){
+	return (lvl == outermostLevel) ? outermostLevel : lvl->parent;
 }
 
 void TL_printLevel(TL_level level){
@@ -598,7 +599,41 @@ TL_exp TL_voidExp(void){
 	return TL_voidReturn;
 }
 
-TL_exp TL_callExp(TL_level caller_lvl, TL_level callee_lvl, TMP_label fun_label, TL_exp* argv, int args);
+TL_exp TL_callExp(TL_level caller_level, TL_level calleePrt_level, TMP_label function_label, TL_exp* argvs, int argNum){
+	int count = 0;
+	TR_exp staticlk;
+	/*generate the static link*/
+	if(caller_level != calleePrt_level){
+		staticlk = FRM_Exp(FRM_staticLink(),TMP_temp(FRM_FP()));
+		caller_level = caller_level->parent;
+		while(caller_level != calleePrt_level){
+			staticlk = FRM_Exp(FRM_staticLink(),staticlk);
+			caller_level = caller_level->parent;
+		}
+	}
+	else{
+		staticlk = FRM_Exp(FRM_staticLink(),TMP_temp(F_FP()));
+	}
+	/*generate the argument list(include static link)*/
+	TR_expList listptr_head = NULL;
+	if(argNum > 0){
+		TR_expList listptr = (TR_expList)check_malloc(sizeof(struct TR_expList_));
+		listptr_head = listptr;
+		listptr->head = staticlk;
+		listptr->tail = NULL;
+		int i = 0;
+		while(i < argNum){
+			listptr->tail = (TR_expList)check_malloc(sizeof(struct TR_expList_));
+			listptr = listptr->tail;
+			listptr->head = unEx(argvs[i]);
+			listptr->tail = NULL;
+			i++;
+		}
+	}
+	/*generate IR tree*/
+	return TL_Ex(TR_Call(TR_Name(function_label),listptr_head));
+
+}
 
 void TL_procEntryExit(TL_level funLevel, TL_exp funBody, TL_accessList formals, TMP_label label){
 	TR_stm statement;
