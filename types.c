@@ -20,3 +20,9 @@ TP_tp TP_Array(TP_tp tp) {
     ptr->u.array = tp;
     return ptr;
 }
+
+TP_tpList TP_TpList(TP_tp head, TP_tpList tail) {
+	TP_tpList ptr = check_malloc(sizeof(*ptr));
+	ptr->head = head;
+	ptr->tail = tail;
+}
