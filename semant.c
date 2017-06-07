@@ -101,6 +101,73 @@ static TP_tp generateTp(AST_ty a){
 	}
 }
 
+
+/*
+ * error dealing
+ */
+typedef enum {WARNING, ERROR, SEVERE, FATAL} sm_error_level;
+static int SM_alert_level = -1;
+static char string_sm_error_level[][15] = {
+	"[warning] ",
+	"[error] ",
+	"[error] ",
+	"[error] "
+};
+static int str_length_sm_error_level[] = {
+	10,
+	8,
+	8,
+	8
+};
+static void SM_info(sm_error_level level, int pos, char *info, ...);
+static struct exp_tp SM_check_exit(sm_error_level level);
+
+static void SM_info(sm_error_level level, int pos, char *info, ...){
+	va_list arglist;
+	va_start(arglist, info);
+	char str0[128];
+	char *str = str0;
+
+	strcpy(str, string_sm_error_level[level]);
+	str = str + str_length_sm_error_level[level];
+	vsprintf(str, info, arglist);
+	va_end(arglist);
+	ERRMSG_error(pos, str0);
+
+	if(SM_alert_level < (int)level){
+		SM_alert_level = (int)level;
+	}
+	if(level == FATAL){
+		exit(1);
+	}
+}
+static struct exp_tp SM_check_exit(sm_error_level level){
+	if(SM_alert_level >= (int)level){
+		exit(1);
+	}
+	return *empty_exp_tp;
+}
+
+
+static void transTp(SB_table typeEV, SB_symbol sb, AST_ty a){
+	SB_symbol sym;
+	TP_tp tp;
+	
+	TP_tp cur_tp = SB_look(typeEV, sb);
+	switch (a->kind){
+		case AST_arrayTy:
+			sym = a->u.array;
+			tp = SB_look(typeEV, sym);
+			if(tp == NULL){
+				SM_info(FATAL, a->pos, "undefined type:'%s'", SB_name(sym));
+			}
+			else{
+				cur_tp->u.array = tp;
+			}
+			break;
+	}
+}
+
 static TP_tpList generateFormalTpList(SB_table typeEV, AST_fieldList params) {
 	TP_tpList tpList = TP_TpList(NULL, NULL);
 	TP_tpList tpList_head = tpList;
@@ -177,72 +244,6 @@ static void generateEscapeList(UN_boolList *formal_escapes, AST_fieldList fieldL
 		escapes->tail = NULL;
 	}
 	*formal_escapes = escapes_head;
-}
-
-/*
- * error dealing
- */
-typedef enum {WARNING, ERROR, SEVERE, FATAL} sm_error_level;
-static int SM_alert_level = -1;
-static char string_sm_error_level[][15] = {
-	"[warning] ",
-	"[error] ",
-	"[error] ",
-	"[error] "
-};
-static int str_length_sm_error_level[] = {
-	10,
-	8,
-	8,
-	8
-};
-static void SM_info(sm_error_level level, int pos, char *info, ...);
-static struct exp_tp SM_check_exit(sm_error_level level);
-
-static void SM_info(sm_error_level level, int pos, char *info, ...){
-	va_list arglist;
-	va_start(arglist, info);
-	char str0[128];
-	char *str = str0;
-
-	strcpy(str, string_sm_error_level[level]);
-	str = str + str_length_sm_error_level[level];
-	vsprintf(str, info, arglist);
-	va_end(arglist);
-	ERRMSG_error(pos, str0);
-
-	if(SM_alert_level < (int)level){
-		SM_alert_level = (int)level;
-	}
-	if(level == FATAL){
-		exit(1);
-	}
-}
-static struct exp_tp SM_check_exit(sm_error_level level){
-	if(SM_alert_level >= (int)level){
-		exit(1);
-	}
-	return *empty_exp_tp;
-}
-
-
-static void transTp(SB_table typeEV, SB_symbol sb, AST_ty a){
-	SB_symbol sym;
-	TP_tp tp;
-	
-	TP_tp cur_tp = SB_look(typeEV, sb);
-	switch (a->kind){
-		case AST_arrayTy:
-			sym = a->u.array;
-			tp = SB_look(typeEV, sym);
-			if(tp == NULL){
-				SM_info(FATAL, a->pos, "undefined type:'%s'", SB_name(sym));
-			}
-			else{
-				cur_tp->u.array = tp;
-			}
-			break;
-	}
 }
 
 
@@ -357,7 +358,7 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 			// get function declaration from environment
 			item = SB_look(valueEV, e->u.call.func);
 
-			if (item != NULL && item->kind == EV_FunItem) {
+			if (item != NULL && item->kind == EV_funItem) {
 				// use an array to hold all the arguments
 				i = 0;
 				for (formalTypes = item->u.fun.formalTypes; formalTypes != NULL; formalTypes = formalTypes->tail) {

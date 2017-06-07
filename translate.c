@@ -604,7 +604,7 @@ TL_exp TL_callExp(TL_level caller_level, TL_level calleePrt_level, TMP_label fun
 	TR_exp staticlk;
 	/*generate the static link*/
 	if(caller_level != calleePrt_level){
-		staticlk = FRM_Exp(FRM_staticLink(),TMP_temp(FRM_FP()));
+		staticlk = FRM_Exp(FRM_staticLink(),TR_Temp(FRM_FP()));
 		caller_level = caller_level->parent;
 		while(caller_level != calleePrt_level){
 			staticlk = FRM_Exp(FRM_staticLink(),staticlk);
@@ -612,7 +612,7 @@ TL_exp TL_callExp(TL_level caller_level, TL_level calleePrt_level, TMP_label fun
 		}
 	}
 	else{
-		staticlk = FRM_Exp(FRM_staticLink(),TMP_temp(F_FP()));
+		staticlk = FRM_Exp(FRM_staticLink(),TR_Temp(FRM_FP()));
 	}
 	/*generate the argument list(include static link)*/
 	TR_expList listptr_head = NULL;
