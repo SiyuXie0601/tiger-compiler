@@ -25,17 +25,26 @@ typedef struct EV_item_ *EV_item;
 
 struct EV_item_ {
 	enum {
-		EV_varItem
+		EV_varItem,
+		EV_funItem
 	} kind;
 	union{
 		struct {
 			TL_access access;
 			TP_tp tp;
 		} var;
+		struct
+		{
+			TL_level level;
+			TMP_label label;
+			TP_tpList formalTypes;
+			TP_tp resultType;
+		} fun;
 	} u;
 };
 
 EV_item EV_VarItem(TL_access access, TP_tp tp);
+EV_item EV_FunItem(TL_level level, TMP_label label, TP_tpList formalTypes, TP_tp resultType);
 
 SB_table EV_base_typeEv();
 SB_table EV_base_valueEv();

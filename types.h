@@ -8,6 +8,8 @@
 #define _TYPES_H_
 
 typedef struct TP_tp_ *TP_tp;
+typedef struct TP_tpList_ *TP_tpList;
+
 
 struct TP_tp_ {
     enum {
@@ -21,10 +23,17 @@ struct TP_tp_ {
     }u;
 };
 
+struct TP_tpList_
+{
+	TP_tp head;
+	TP_tpList tail;
+};
+
 TP_tp TP_Int(void);
 TP_tp TP_String(void);
 TP_tp TP_Void();
 TP_tp TP_Array(TP_tp tp);
+TP_tpList TP_TpList(TP_tp head, TP_tpList tail);
 
 #endif // !_TYPES_H_
 

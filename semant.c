@@ -101,7 +101,83 @@ static TP_tp generateTp(AST_ty a){
 	}
 }
 
+static TP_tpList generateFormalTpList(SB_table typeEV, AST_fieldList params) {
+	TP_tpList tpList = TP_TpList(NULL, NULL);
+	TP_tpList tpList_head = tpList;
+	bool isLegal = TRUE;
 
+	SB_symbol sym;
+	TP_tp tp;
+
+	Type_sym_stack_empty();
+
+	for (; params != NULL; params = params->tail) {
+		AST_field head = params->head;
+		if (head == NULL) {
+			continue;
+		}
+
+		if (Loop_var_stack_look(head->name)) {
+			SM_info(SEVERE, head->pos, "the name of loop variable '%s' cannot be reused by function's argument", SB_name(head->name));
+		}
+
+		sym = head->typ;
+		tp = SB_look(typeEV, sym);
+		if (tp == NULL) {
+			SM_info(SEVERE, head->pos, "undefined type: '%s'", SB_name(sym));
+			isLegal = FALSE;
+		}
+
+		if (!Type_sym_stack_look(head->name)) {
+			Type_sym_stack_push(head->name);
+		}
+		else {
+			SM_info(SEVERE, head->pos, "the name of formal argument '%s' has been used for the function", SB_name(head->name));
+		}
+
+		if (isLegal) {
+			tpList->tail = TP_TpList(NULL, NULL);
+			tpList->head = tp;
+			tpList = tpList->tail;
+		}
+	}
+
+	tpList->tail = NULL;
+
+	SM_check_exit(SEVERE);
+
+	if (tpList_head->head != NULL) {
+		return tpList_head;
+	}
+	else {
+		return NULL;
+	}
+}
+
+static void generateEscapeList(UN_boolList *formal_escapes, AST_fieldList fieldList) {
+	if (fieldList == NULL) {
+		*formal_escapes = NULL;
+		return;
+	}
+
+	UN_boolList escapes = NULL;
+	UN_boolList escapes_head = NULL;
+
+	for (; fieldList != NULL; fieldList = fieldList->tail) {
+		if (escapes_head == NULL) {
+			escapes = UN_BoolList(TRUE, NULL);
+			escapes_head = escapes;
+		}
+		else {
+			escapes->tail = UN_BoolList(TRUE, NULL);
+			escapes = escapes->head;
+		}
+	}
+	if (escapes != NULL) {
+		escapes->tail = NULL;
+	}
+	*formal_escapes = escapes_head;
+}
 
 /*
  * error dealing
@@ -193,6 +269,9 @@ FRM_fragList SM_transProgram(AST_exp exp){
 	
 	return TL_getResult();
 }
+#define RIGHT_ARGUMENTS 0
+#define LESS_ARGUMENTS 1
+#define MORE_ARGUMENTS 2
 
 struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_exp e){
 	int i;
@@ -205,6 +284,13 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 
 	// AST_letExp
 	AST_decList d;
+
+	// AST_callExp
+	TP_tpList formalTypes;
+	AST_expList arguments;
+	EV_item item;
+	int argument_number;
+	TL_exp* argument_exps;
 
 	// AST_opExp
 	struct exp_tp left_exp_tp;
@@ -265,6 +351,76 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 		case AST_stringExp:
 			te = TL_stringExp(e->u.stringg);
 			return Exp_Tp(te, TP_String());
+		case AST_callExp:
+			argument_number = RIGHT_ARGUMENTS;
+
+			// get function declaration from environment
+			item = SB_look(valueEV, e->u.call.func);
+
+			if (item != NULL && item->kind == EV_FunItem) {
+				// use an array to hold all the arguments
+				i = 0;
+				for (formalTypes = item->u.fun.formalTypes; formalTypes != NULL; formalTypes = formalTypes->tail) {
+					if (formalTypes->head != NULL) {
+						i++;
+					}
+				}
+				argument_exps = NULL;
+				if (i > 0) {
+					argument_exps = check_malloc(i * sizeof(TL_exp));
+				}
+
+				i = 0;
+				for (formalTypes = item->u.fun.formalTypes, arguments = e->u.call.args;
+					formalTypes != NULL && arguments != NULL;
+					formalTypes = formalTypes->tail, arguments = arguments->tail, i++) {
+					tp = formalTypes->head;
+					exp = arguments->head;
+					if (exp != NULL && tp != NULL) {
+						exp_tp = transExp(level, valueEV, typeEV, exp);
+						if (actual_tp(exp_tp.tp) != actual_tp(tp)) {
+							SM_info(SEVERE, exp->pos, "Type of argument %d passed to function '%s' is incompatible with the declared type", i + 1, SB_name(e->u.call.func));
+						}
+						argument_exps[i] = exp_tp.exp;
+					}
+					else if (exp == NULL && tp != NULL) {
+						argument_number = LESS_ARGUMENTS;
+						break;
+					}
+					else if(exp != NULL && tp == NULL){
+						argument_number = MORE_ARGUMENTS;
+						break;
+					}
+				}
+
+				if (formalTypes != NULL && arguments == NULL) {
+					if (formalTypes->head != NULL) {
+						argument_number = LESS_ARGUMENTS;
+					}
+				}
+				if (formalTypes == NULL && arguments != NULL) {
+					if (arguments->head != NULL) {
+						argument_number = MORE_ARGUMENTS;
+					}
+				}
+				if (argument_number == LESS_ARGUMENTS) {
+					SM_info(SEVERE, e->pos, "less than necessary arguments are passed to function '%s'", SB_name(e->u.call.func));
+				}
+				if (argument_number == MORE_ARGUMENTS) {
+					SM_info(SEVERE, e->pos, "more than necessary arguments are passed to function '%s'", SB_name(e->u.call.func));
+				}
+
+				SM_check_exit(SEVERE);
+
+				te = TL_callExp(level, TL_getParent(item->u.fun.level), item->u.fun.label, argument_exps, i);
+				check_free(argument_exps);
+
+				return Exp_Tp(te, item->u.fun.resultType);
+			}
+			else {
+				SM_info(FATAL, e->pos, "undefined function: %s", SB_name(e->u.call.func));
+				return SM_check_exit(FATAL);
+			}
 		case AST_opExp:
 			left_exp_tp = transExp(level, valueEV, typeEV, e->u.op.left);
 			right_exp_tp = transExp(level, valueEV, typeEV, e->u.op.right);
@@ -633,6 +789,16 @@ TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_dec d){
 	TP_tp decTp;
 	TL_access access;
 	TL_exp tl_exp;
+	AST_fundecList fundecList;
+	AST_fundec head;
+	TP_tp resultTp;
+	TP_tpList formalTps;
+	UN_boolList formal_escapes;
+	TL_level funcLevel;
+	EV_item item;
+	TL_accessList tl_formals;
+	AST_fieldList fieldList;
+	TP_tpList tpList;
 	switch(d->kind){
 		case AST_varDec:
 			sym = d->u.var.var;
@@ -694,6 +860,87 @@ TL_exp transDec(TL_level level, SB_table valueEV, SB_table typeEV, AST_dec d){
 
 			tl_exp = TL_voidExp();
 			break;
+		case AST_functionDec:
+			// pusuh formals and result of function declarations into the environment
+			// alse check whether there are functions of the same name
+			
+			Type_sym_stack_empty();
+
+			for (fundecList = d->u.function; fundecList != NULL; fundecList = fundecList->tail) {
+				head = fundecList->head;
+				if (head != NULL) {
+
+					//check whether it has been used 
+					if (Type_sym_stack_look(head->name)) {
+						SM_info(FATAL, d->pos, "the function name '%s' has been used!", SB_name(head->name));
+					}
+					else {
+						Type_sym_stack_push(head->name);
+					}
+
+					if (head->result != NULL) {
+						resultTp = SB_look(typeEV, head->result);
+					}
+					else {
+						resultTp = TP_Void();
+					}
+
+					formalTps = generateFormalTpList(typeEV, head->params);
+
+					generateEscapeList(&formal_escapes, head->params);
+					
+					funcLevel = TL_newLevel(level, TMP_namedlabel(SB_name(head->name)), formal_escapes);
+					check_free(formal_escapes);
+
+					SB_enter(valueEV, head->name, EV_FunItem(funcLevel, TMP_newlabel(), formalTps, resultTp));
+
+
+				}
+			}
+
+			for (fundecList = d->u.function; fundecList != NULL; fundecList = fundecList->tail) {
+				head = fundecList->head;
+				if (head != NULL) {
+
+					// get formaltypes
+					item = SB_look(valueEV, head->name);
+					formalTps = item->u.fun.formalTypes;
+
+					SB_beginScope(valueEV);
+					tl_formals = TL_formals(item->u.fun.level)->tail;
+					for (fieldList = head->params, tpList = formalTps; fieldList != NULL;
+						fieldList = fieldList->tail, tpList = tpList->tail, tl_formals = tl_formals->tail) {
+						SB_enter(valueEV, fieldList->head->name, EV_VarItem(tl_formals->head, tpList->head));
+					}
+
+					exp = transExp(item->u.fun.level, valueEV, typeEV, head->body);
+
+					resultTp = item->u.fun.resultType;
+					if (head->result != NULL) {
+						tp = actual_tp(exp.tp);
+						if (actual_tp(resultTp) != tp) {
+							if (tp->kind == TP_void) {
+								SM_info(ERROR, head->pos, "the function '%s' has no returned value!", SB_name(head->name));
+							}
+							else {
+								SM_info(ERROR, head->pos, "the returned value of function '%s' is incompatible with declared type", SB_name(head->name));
+							}
+						}
+					}
+					else {
+						if (actual_tp(exp.tp) != TP_void) {
+							SM_info(WARNING, head->pos, "returned value of procedure '%s' is ignored!", SB_name(head->name));
+						}
+					}
+
+					TL_procEntryExit(item->u.fun.level, exp.exp, TL_formals(item->u.fun.level), item->u.fun.label);
+
+					SB_endScope(valueEV);
+				}
+			}
+
+			tl_exp = TL_voidExp();
+			break;
 	}
 	return tl_exp;
 }
@@ -713,6 +960,17 @@ EV_item EV_VarItem(TL_access access, TP_tp tp){
 	item->kind = EV_varItem;
 	item->u.var.tp = tp;
 	item->u.var.access = access;
+	return item;
+}
+
+EV_item EV_FunItem(TL_level level, TMP_label label, TP_tpList formalTypes, TP_tp resultType) {
+	EV_item item = check_malloc(sizeof(*item));
+	item->kind = EV_funItem;
+	item->u.fun.formalTypes = formalTypes;
+	item->u.fun.label = label;
+	item->u.fun.level = level;
+	item->u.fun.resultType = resultType;
+	return item;
 }
 
 SB_table EV_base_typeEv(){
@@ -724,6 +982,37 @@ SB_table EV_base_typeEv(){
 
 SB_table EV_base_valueEv(){
 	SB_table table = SB_empty();
+	TL_level level;
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("print"), UN_BoolList(TRUE, NULL));
+	SB_enter(table, SB_Symbol("print"), EV_FunItem(level, TMP_newlabel(), TP_TpList(TP_String(), NULL), TP_Void()));
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("flush"), NULL);
+	SB_enter(table, SB_Symbol("flush"), EV_FunItem(level, TMP_newlabel(), NULL, TP_Void()));
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("getchar"), NULL);
+	SB_enter(table, SB_Symbol("getchar"), EV_FunItem(level, TMP_newlabel(), NULL, TP_String()));
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("ord"), UN_BoolList(TRUE, NULL));
+	SB_enter(table, SB_Symbol("ord"), EV_FunItem(level, TMP_newlabel(), TP_TpList(TP_String(), NULL), TP_Int()));
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("chr"), UN_BoolList(TRUE, NULL));
+	SB_enter(table, SB_Symbol("chr"), EV_FunItem(level, TMP_newlabel(), TP_TpList(TP_Int(), NULL), TP_String()));
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("size"), UN_BoolList(TRUE, NULL));
+	SB_enter(table, SB_Symbol("size"), EV_FunItem(level, TMP_newlabel(), TP_TpList(TP_String(), NULL), TP_Int()));
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("substring"), UN_BoolList(TRUE, UN_BoolList(TRUE, UN_BoolList(TRUE, NULL))));
+	SB_enter(table, SB_Symbol("substring"), EV_FunItem(level, TMP_newlabel(), TP_TpList(TP_String(), TP_TpList(TP_Int(), TP_TpList(TP_Int(), NULL))), TP_String()));
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("concat"), UN_BoolList(TRUE, UN_BoolList(TRUE, NULL)));
+	SB_enter(table, SB_Symbol("concat"), EV_FunItem(level, TMP_newlabel(), TP_TpList(TP_String(), TP_TpList(TP_String(), NULL)), TP_String()));
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("not"), UN_BoolList(TRUE, NULL));
+	SB_enter(table, SB_Symbol("not"), EV_FunItem(level, TMP_newlabel(), TP_TpList(TP_String(), NULL), TP_Int()));
+
+	level = TL_newLevel(TL_outermost(), TMP_namedlabel("exit"), UN_BoolList(TRUE, NULL));
+	SB_enter(table, SB_Symbol("exit"), EV_FunItem(level, TMP_newlabel(), TP_TpList(TP_Int(), NULL), TP_Void()));
 	return table;
 }
 
