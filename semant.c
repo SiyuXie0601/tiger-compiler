@@ -237,7 +237,7 @@ static void generateEscapeList(UN_boolList *formal_escapes, AST_fieldList fieldL
 		}
 		else {
 			escapes->tail = UN_BoolList(TRUE, NULL);
-			escapes = escapes->head;
+			escapes = escapes->tail;
 		}
 	}
 	if (escapes != NULL) {
