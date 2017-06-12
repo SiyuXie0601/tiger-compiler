@@ -568,7 +568,7 @@ struct exp_tp transExp(TL_level level, SB_table valueEV, SB_table typeEV, AST_ex
 			true_exp = transExp(level, valueEV, typeEV, e->u.iff.then);
 
 			// translate the false-branch exp
-			if(e->u.iff.elsee != NULL){
+			if(e->u.iff.elsee->kind != AST_nilExp){
 				is_if_then_else = TRUE;
 				false_exp = transExp(level, valueEV, typeEV, e->u.iff.elsee);
 			}
