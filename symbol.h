@@ -4,7 +4,7 @@
  */
 #ifndef _SYMBOL_H_
 #define _SYMBOL_H_
-
+#include "util.h"
 typedef struct SB_symbol_ * SB_symbol;
 
 /* Make a unique symbol from a given string.  
