@@ -13,6 +13,8 @@
 #include "assem.h"
 #include "canon.h"
 #include "tree.h"
+#include "temp.h"
+
 #define PRINT
 extern int yyparse(void);
 extern AST_exp absyn_root;

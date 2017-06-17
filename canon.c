@@ -16,6 +16,7 @@ struct expReferenceList_
 static TR_stm do_stm(TR_stm stm);
 static struct stm_exp do_exp(TR_exp e);
 static TR_stmList getNext();
+static CA_stmListList createBlocks(TR_stmList stms, TMP_label exit);
 
 static expReferenceList ExpReferenceList(TR_exp *head, expReferenceList tail) {
 	expReferenceList ptr = check_malloc(sizeof(*ptr));
@@ -122,7 +123,7 @@ static TR_stm do_stm(TR_stm stm) {
 		else if (stm->u.MOVE.dst->kind == TR_TEMP) {
 			return seq(reorder(ExpReferenceList(&stm->u.MOVE.src, NULL)), stm);
 		}
-		else if (stm->u.MOVE.dst == TR_MEM) {
+		else if (stm->u.MOVE.dst->kind == TR_MEM) {
 			return seq(reorder(ExpReferenceList(&stm->u.MOVE.dst->u.MEM, ExpReferenceList(&stm->u.MOVE.src, NULL))), stm);
 		}
 		else if (stm->u.MOVE.dst->kind == TR_ESEQ) {

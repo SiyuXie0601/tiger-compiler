@@ -163,7 +163,7 @@ void ASSB_printInstrList(FILE *out, ASSB_instrList instrList, TMP_map map){
 }
 
 ASSB_proc ASSB_Proc(string str, ASSB_instrList body, string exp){
-    ASSB_proc proc = checked_malloc(sizeof(*proc));
+    ASSB_proc proc = check_malloc(sizeof(*proc));
     proc->prolog=str; proc->body=body; proc->epilog=exp;
     return proc;
 }

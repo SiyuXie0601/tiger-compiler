@@ -92,8 +92,7 @@ static void Type_sym_stack_empty(){
 }
 
 static TP_tp generateTp(AST_ty a){
-	SB_symbol sb;
-	TP_tp tp;
+
 	switch(a->kind){
 		case AST_arrayTy:
 			return TP_Array(NULL);
@@ -748,7 +747,6 @@ struct exp_tp transVar(TL_level level, SB_table valueEV, SB_table typeEV, AST_va
 	struct exp_tp exp2;
 
 	TL_exp te;
-	int offset;
 
 	switch(v->kind){
 		case AST_simpleVar:
