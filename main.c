@@ -14,6 +14,7 @@
 #include "canon.h"
 #include "tree.h"
 #include "temp.h"
+#include "codegen.h"
 
 #define PRINT
 extern int yyparse(void);
@@ -42,10 +43,10 @@ static void doProc(FILE *out, FRM_frame frm, TR_stm by){
 	fprintf(out, "\nProcedure %d (%s):\n", ++cnt, TMP_labelstring(FRM_name(frm)));
 	instructionList = FRM_codegen(frm, statementList);
 	TMP_map map = TMP_layerMap(FRM_tempMap(), TMP_name());
-	fprintf(out, "BEGIN %s\n", Temp_labelstring(F_name(frm)));
-	AS_printInstrList (out, instructionList, map);
-	fprintf(out, "END %s\n", Temp_labelstring(F_name(frm)));
-	proc = F_procEntryExit3(frm, instructionList);
+	fprintf(out, "BEGIN %s\n", TMP_labelstring(FRM_name(frm)));
+	ASSB_printInstrList(out, instructionList, map);
+	fprintf(out, "END %s\n", TMP_labelstring(FRM_name(frm)));
+	proc = FRM_procEntryExit3(frm, instructionList);
 }
 
 
@@ -68,7 +69,7 @@ int main(int argc, char **argv){
 	fprintf(out, "\n(assembly code before register allocation)\n");
 	for(; frgList; frgList = frgList->tail){
 		if(frgList->head != NULL){
-			if(frgList->head->kind == FRM_ProcFrag){
+			if(frgList->head->kind == FRM_procFrag){
 				doProc(out, frgList->head->u.proc.frame, frgList->head->u.proc.body);
 			}
 		}
