@@ -40,6 +40,8 @@ static void doProc(FILE *out, FRM_frame frm, TR_stm by){
 	TR_stmList statementList;
 
 	statementList = CA_linearize(by);
+	struct CA_block block = CA_basicBlocks(statementList);
+	statementList = CA_traceaGeneration(block);
 	fprintf(out, "\nProcedure %d (%s):\n", ++cnt, TMP_labelstring(FRM_name(frm)));
 	instructionList = FRM_codegen(frm, statementList);
 	TMP_map map = TMP_layerMap(FRM_tempMap(), TMP_name());

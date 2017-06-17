@@ -28,8 +28,8 @@ static bool isNop(TR_stm stm) {
 	return stm->kind == TR_EXP && stm->u.EXP->kind == TR_CONST;
 }
 static TR_stm seq(TR_stm m, TR_stm n) {
-	if (isNop(m)) return m;
-	if (isNop(n)) return n;
+	if (isNop(m)) return n;
+	if (isNop(n)) return m;
 	return TR_Seq(m, n);
 }
 
