@@ -94,8 +94,8 @@ void ASSB_format(char *rst, string assb, TMP_tempList dest, TMP_tempList source,
                     {
                         int k = atoi(++ptr);
                         string str = TMP_look(map, nthTemp(source, k));
-                        strcpy(rst + j, str);
-                        j += strlen(str);
+						strcpy(rst + j, str);
+						j = j + strlen(str);
                     }
                     break;
                 case 'd':
@@ -103,7 +103,7 @@ void ASSB_format(char *rst, string assb, TMP_tempList dest, TMP_tempList source,
                         int k = atoi(++ptr);
                         string str = TMP_look(map, nthTemp(dest, k));
                         strcpy(rst + j, str);
-                        j += strlen(str);
+						j = j + strlen(str);
                     }
                     break;
                 case 'j':
@@ -125,7 +125,7 @@ void ASSB_format(char *rst, string assb, TMP_tempList dest, TMP_tempList source,
             }
         }
         else{
-            rst[j] == *ptr;
+            rst[j] = *ptr;
             j++;
         }
     }

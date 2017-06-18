@@ -48,15 +48,15 @@ static void callerSaveRegs();
 static inline void initCallerSaveRegs();
 
 static char* build(char *msg, ...){
-    va_list va_ap;
-    va_start(va_ap, msg);
+    va_list ap;
+    va_start(ap, msg);
 
     char *h = check_malloc(80 * sizeof(char));
     char *p = h;
-    int i = vsprintf(p, msg, va_ap);
+    int i = vsprintf(p, msg, ap);
     p = p + i;
     sprintf(p, "\n\0");
-    va_end(va_ap);
+    va_end(ap);
 
     return h;
 }
@@ -146,7 +146,7 @@ static TMP_temp codeEmitShiftop(char *operand, TR_exp expression0, TR_exp expres
 
 static void codeEmitCondJump(char *operand, TR_exp treeLeft, TR_exp treeRight, TMP_label trueLabel, TMP_label falseLabel){
 	codeEmit(ASSB_Oper(
-		build("%s `s0, `s1, j0", operand),
+		build("%s `s0, `s1, `j0", operand),
 		NULL,
 		TMPList(munchExpression(treeLeft),
 			TMPList(munchExpression(treeRight), NULL)),
@@ -167,6 +167,7 @@ static inline void initCallerSaveRegs(){
         }
         callerSaveRegArray = check_malloc(callerSaveRegsNumber * sizeof(TMP_temp));
         int count = 0;
+		t_list = FRM_getRegList(callersaveRegisters);
         while(t_list != NULL && t_list->head != NULL){
             callerSaveRegArray[count] = t_list->head;
             count++;
@@ -190,7 +191,7 @@ static void callerSaveRegs(){
     }
     for(; count<callerSaveRegsNumber; count++){
         codeEmit(ASSB_Oper(
-            build("sw `so, %d(`s1)", thisFRM->offset + -1 * count * FRM_wordSize),
+            build("sw `s0, %d(`s1)", thisFRM->offset + -1 * count * FRM_wordSize),
             NULL,
             TMPList(callerSaveRegArray[count], TMPList(FRM_FP(), NULL)),
             NULL
@@ -393,7 +394,7 @@ static TMP_temp munchExpression(TR_exp exp){
     else if(exp->kind == TR_CONST){
         TMP_temp r_label = TMP_newtemp();
         codeEmit(ASSB_Oper(
-            build("li `d0, %s", exp->u.CONST),
+            build("li `d0, %d", exp->u.CONST),
             TMPList(r_label, NULL),
             NULL,
             NULL
@@ -481,7 +482,7 @@ static void munchStatement(TR_stm stm){
             //move to relative access
             if(expression0->kind == TR_BINOP){
                 expression1 = expression0->u.BINOP.left;
-                expression2 = expression0->u.BINOP.left;
+                expression2 = expression0->u.BINOP.right;
                 if(expression0->u.BINOP.op == TR_plus){
                     if(expression1->kind == TR_CONST){
                         //MOVE(MEM(BINOP(PLUS, e2, CONST(i))), e3)

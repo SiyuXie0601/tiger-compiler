@@ -139,12 +139,12 @@ TMP_map FRM_tempMap(){
         }
         for(index = 0; index < 10; index++){
             char* name = check_malloc(8*sizeof(char));
-            sprintf(name, "$s%d", index);
+            sprintf(name, "$t%d", index);
             TMP_enter(_FRM_tempMap, FRM_TN(index), name);
         }
         for(index = 0; index < 4; index++){
             char* name = check_malloc(8*sizeof(char));
-            sprintf(name, "$s%d", index);
+            sprintf(name, "$a%d", index);
             TMP_enter(_FRM_tempMap, FRM_AN(index), name);
         }
     }
