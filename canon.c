@@ -258,6 +258,7 @@ static void trace(TR_stmList list) {
 		TR_stmList falseBranch = SB_look(blockEV, stm->u.CJUMP.false);
 		if (falseBranch) {
 			last->tail->tail = falseBranch;
+			trace(falseBranch);
 		}
 		else if (trueBranch) {
 			last->tail->head = TR_Cjump(
